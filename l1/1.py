@@ -85,12 +85,34 @@ def random_lower(size):
             matrix[j][i] = value
     return matrix
 
+# losowa macierz eukidesowa 2D
+def random_euc_2d(size):
+    matrix = numpy.zeros((size, size))
+    matrixCoordinates = numpy.empty((size), dtype=object)
+    for i in range(size):
+        x, y = random.randint(0, 1000), random.randint(0, 1000)
+        matrixCoordinates[i] = (x, y)
+
+    for i in range(size):
+        for j in range(i):
+            coods1 = matrixCoordinates[i]
+            coods2 = matrixCoordinates[j]
+            x1, y1 = coods1
+            x2, y2 = coods2
+            matrix[i][j] = sqrt((x2-x1) ** 2 + (y2-y1) ** 2).real # część rzeczywista liczby zespolonej
+
+    return matrix
+
 # na razie zwraca byle jakie rozwiazanie
 def calculate_result(matrix):
     result=[]
     for i in range(len(matrix)):
         result.append(i)
     return result
+
+# wypisanie instancji
+def print_instance(instance):
+    print(instance)
 
 # wypisanie trasy
 def print_result(result):
@@ -106,17 +128,24 @@ def result_euc(result):
     plt.plot([x[i] for i in range(len(result))], [y[i] for i in range(len(result))], color="red")
     plt.show()
 
-#TODO
-def f(result):
-    return len(result)
+# funckja celu
+def f(cycle, matrix):
+    sum = 0
+    for c in range(len(cycle)-1):
+        sum += matrix[cycle[c]-1][cycle[c+1]-1]
+    sum += matrix[cycle[len(cycle)-1]-1][cycle[0]-1]
+
+    return sum
 
 # blad wzgledny
-def PRD(best_result,result):
-    f_res=f(result)
-    f_best=f(best_result)
-    return ((f_res-f_best)/f_best)*100
+def PRD(best_result,result, matrix):
+    if type(best_result) == int:
+        f_res=f(result, matrix)
+        f_best=best_result
+        return ((f_res-f_best)/f_best)*100
+    elif type(best_result) == list:
+        f_res=f(result, matrix)
+        f_best=f(best_result, matrix)
+        return ((f_res-f_best)/f_best)*100
 
-
-
-
-
+result_euc(calculate_result(euc_2d('./berlin52.tsp')))
