@@ -155,7 +155,6 @@ def nearest_neighbour(matrix,position):
         position=index
         result.append(position)
         i+=1
-    print(matrix[position][0])
     return result
 
 def invert(vector,i,j):
