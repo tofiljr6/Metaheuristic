@@ -9,6 +9,7 @@ def full_matrix(filename):
     problem = tsplib95.load(filename)
     nodeList = list(problem.get_nodes())
 
+
     matrix = [[None for i in range(len(nodeList))] for j in range(len(nodeList))]
 
     for i in nodeList:
@@ -30,6 +31,7 @@ def lower_diag_row(filename):
 
 # wczytywanie euc
 def euc_2d(filename):
+
     problem = tsplib95.load(filename)
     nodeList = list(problem.get_nodes())
     edgesList = list(problem.get_edges())
@@ -103,8 +105,8 @@ def print_instance(instance):
 # wypisanie trasy
 def print_result(result):
     for i in range(len(result)):
-        print(i,"-> ",end="")
-    print(result[0])
+        print(result[i]+1,"-> ",end="")
+    print(result[0]+1)
 
 # trasa graficznie
 def result_euc(result):
@@ -119,12 +121,12 @@ def f(cycle, matrix):
     sum = 0
     if len(matrix[0])==1:
         for c in range(len(cycle) - 1):
-            sum += matrix[cycle[c + 1] - 1][cycle[c] - 1]
-        sum += matrix[cycle[0] - 1][cycle[len(cycle) - 1] - 1]
+            sum += matrix[cycle[c + 1]][cycle[c]]
+        sum += matrix[cycle[0]][cycle[len(cycle) - 1]]
     else:
         for c in range(len(cycle)-1):
-            sum += matrix[cycle[c]-1][cycle[c+1]-1]
-        sum += matrix[cycle[len(cycle)-1]-1][cycle[0]-1]
+            sum += matrix[cycle[c]][cycle[c+1]]
+        sum += matrix[cycle[len(cycle)-1]][cycle[0]]
     return sum
 
 # blad wzgledny
@@ -137,3 +139,27 @@ def PRD(best_result,result, matrix):
         f_res=f(result, matrix)
         f_best=f(best_result, matrix)
         return ((f_res-f_best)/f_best)*100
+
+def nearest_neighbour(matrix,position):
+    result=[position]
+    i=0
+    while i<len(matrix)-1:
+        min=99999
+        index=0
+        for j in range(len(matrix[position])):
+            if j not in result:
+                if matrix[position][j]<min:
+                    min=matrix[position][j]
+                    index=j
+        print(matrix[position][index])
+        position=index
+        result.append(position)
+        i+=1
+    print(matrix[position][0])
+    return result
+
+def invert(vector,i,j):
+    vector[i:j+1]=vector[i:j+1][::-1]
+    return vector
+
+
