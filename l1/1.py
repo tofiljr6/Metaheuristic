@@ -1,3 +1,4 @@
+from copy import copy
 import random
 from math import sqrt
 
@@ -157,8 +158,66 @@ def nearest_neighbour(matrix,position):
         i+=1
     return result
 
+def krandom(k, matrix):
+    start = [i for i in range(len(matrix))]
+    cost = f(start, matrix)
+    best = None
+
+    for _ in range(k):
+        startprim = [i for i in range(len(matrix))]
+        random.shuffle(startprim)
+        currentcost = f(startprim, matrix)
+        if currentcost < cost:
+            cost = currentcost
+            best = startprim
+        # print(start, startprim, f(start, matrix), f(startprim, matrix))
+
+    return best
+
 def invert(vector,i,j):
     vector[i:j+1]=vector[i:j+1][::-1]
     return vector
 
+def twoOPT(matrix, sizeN):
+    # sizeN to jak wielkie ma być sąsiedztwo
 
+    # rozwiązanie początkowe
+    start = [i for i in range(len(matrix))]
+    random.shuffle(start) 
+
+    cycle = copy(start)
+    cycle.extend(start[0:1])
+    startcost = f(cycle, matrix)
+
+    while True:
+        # tworzenie otoczenia
+        N = list()
+        for i in range(sizeN):
+            invertstart = random.randint(0, len(matrix)-1)
+            invertend   = random.randint(0, len(matrix)-1)
+
+            if invertstart > invertend:
+                invertstart, invertend = invertend, invertstart
+
+            # invert
+            st = copy(start)
+            pi = invert(st, invertstart, invertend)
+
+            if invertstart != invertend:
+                N.append(pi)
+
+        # Czy wygenerowane sąsieddzctwo posiada lepsze PI 
+        isBetter = False
+        for n in N:
+            piprim = copy(n)
+            piprim.extend(n[0:1])
+            currentcost = f(piprim, matrix)
+            
+            if currentcost < startcost:
+                start = piprim[0:len(piprim)-1]
+                startcost = currentcost
+                isBetter = True
+
+        if not isBetter:
+            return start
+            
