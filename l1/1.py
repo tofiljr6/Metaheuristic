@@ -1,223 +1,250 @@
-from copy import copy
+import sys
+from copy import copy, deepcopy
 import random
 from math import sqrt
-
+import numpy
 import tsplib95
 from matplotlib import pyplot as plt
+from abc import ABC, abstractmethod
 
 
-def full_matrix(filename):
-    problem = tsplib95.load(filename)
-    nodeList = list(problem.get_nodes())
-
-
-    matrix = [[None for i in range(len(nodeList))] for j in range(len(nodeList))]
-
-    for i in nodeList:
-        for j in nodeList:
-            matrix[i][j]=problem.get_weight(i,j)
-
-    return matrix
-
-def lower_diag_row(filename):
-    problem = tsplib95.load(filename)
-    nodeList = list(problem.get_nodes())
-    matrix = [[0 for i in range(j+1)] for j in range(len(nodeList))]
-
-    for i in nodeList:
-        for j in range(1,i):
-            matrix[i-1][j-1] = problem.get_weight(i, j)
-
-    return matrix
-
-# wczytywanie euc
-def euc_2d(filename):
-
-    problem = tsplib95.load(filename)
-    nodeList = list(problem.get_nodes())
-    edgesList = list(problem.get_edges())
-
-    global x,y
-    x=[]
-    y=[]
-
-    matrix = [[None for i in range(j+1)] for j in range(len(nodeList))]
-
-    for i in range(1,len(nodeList)+1):
-        x.append(problem.node_coords[i][0])
-        y.append(problem.node_coords[i][1])
-
-    for i in range(len(edgesList)):
-        edge = edgesList[i]
-        try:
-            matrix[edge[0] - 1][edge[1] - 1] = problem.get_weight(*edge)
-        except IndexError:
-            pass
-
-    return matrix
-
-# losowa macierz pelna
-def random_full(size):
-    matrix = [[None for i in range(size)] for j in range(size)]
-    for i in range(size):
-        for j in range(size):
-            matrix[i][j]=random.randint(0,1000)
-    return matrix
-
-# losowa macierz lustrzana
-def random_lower(size):
-    matrix = [[0 for i in range(j + 1)] for j in range(size)]
-    for i in range(size):
-        for j in range(i):
-            matrix[i][j]=random.randint(0,1000)
-    return matrix
-
-# losowa macierz eukidesowa 2D
-def random_euc_2d(size):
-    matrix = [[0 for i in range(j+1)] for j in range(size)]
-    global x,y
-    x=[]
-    y=[]
-    for i in range(size):
-        x.append(random.randint(0, 1000))
-        y.append( random.randint(0, 1000))
-
-    for i in range(size):
-        for j in range(i):
-            x1, y1 =(x[i],y[i])
-            x2, y2 =(x[j],y[j])
-            matrix[i][j] = int(sqrt((x2-x1) ** 2 + (y2-y1) ** 2)) # część rzeczywista liczby zespolonej
-
-    return matrix
-
-# na razie zwraca byle jakie rozwiazanie
-def calculate_result(matrix):
-    result=[]
-    for i in range(len(matrix)):
-        result.append(i)
-    return result
-
-# wypisanie instancji
-def print_instance(instance):
-    for i in range(len(instance)):
-        print(instance[i])
-
-
-# wypisanie trasy
+# wypisywanie cyklu
 def print_result(result):
     for i in range(len(result)):
-        print(result[i]+1,"-> ",end="")
-    print(result[0]+1)
+        print(result[i] + 1, "-> ", end="")
+    print(result[0] + 1)
 
-# trasa graficznie
-def result_euc(result):
-    plt.scatter(x,y)
-    for i in range(len(x)):
-        plt.text(x[i],y[i],i)
-    plt.plot([x[i] for i in range(len(result))], [y[i] for i in range(len(result))], color="red")
-    plt.show()
 
-# funckja celu
-def f(cycle, matrix):
-    sum = 0
-    if len(matrix[0])==1:
-        for c in range(len(cycle) - 1):
-            sum += matrix[cycle[c + 1]][cycle[c]]
-        sum += matrix[cycle[0]][cycle[len(cycle) - 1]]
-    else:
-        for c in range(len(cycle)-1):
-            sum += matrix[cycle[c]][cycle[c+1]]
-        sum += matrix[cycle[len(cycle)-1]][cycle[0]]
-    return sum
-
-# blad wzgledny
-def PRD(best_result,result, matrix):
-    if type(best_result) == int:
-        f_res=f(result, matrix)
-        f_best=best_result
-        return ((f_res-f_best)/f_best)*100
-    elif type(best_result) == list:
-        f_res=f(result, matrix)
-        f_best=f(best_result, matrix)
-        return ((f_res-f_best)/f_best)*100
-
-def nearest_neighbour(matrix,position):
-    result=[position]
-    i=0
-    while i<len(matrix)-1:
-        min=99999
-        index=0
-        for j in range(len(matrix[position])):
-            if j not in result:
-                if matrix[position][j]<min:
-                    min=matrix[position][j]
-                    index=j
-        print(matrix[position][index])
-        position=index
-        result.append(position)
-        i+=1
-    return result
-
-def krandom(k, matrix):
-    start = [i for i in range(len(matrix))]
-    cost = f(start, matrix)
-    best = None
-
-    for _ in range(k):
-        startprim = [i for i in range(len(matrix))]
-        random.shuffle(startprim)
-        currentcost = f(startprim, matrix)
-        if currentcost < cost:
-            cost = currentcost
-            best = startprim
-        # print(start, startprim, f(start, matrix), f(startprim, matrix))
-
-    return best
-
-def invert(vector,i,j):
-    vector[i:j+1]=vector[i:j+1][::-1]
+# odwracanie czesci listy
+def invert(vector, i, j):
+    vector[i:j + 1] = vector[i:j + 1][::-1]
     return vector
 
-def twoOPT(matrix, sizeN):
-    # sizeN to jak wielkie ma być sąsiedztwo
 
-    # rozwiązanie początkowe
-    start = [i for i in range(len(matrix))]
-    random.shuffle(start) 
+# klasa abstrakcyjna grafu
+class Graph(ABC):
 
-    cycle = copy(start)
-    cycle.extend(start[0:1])
-    startcost = f(cycle, matrix)
+    # macierz sasiedztwa
+    def __init__(self):
+        self.matrix = []
 
-    while True:
-        # tworzenie otoczenia
-        N = list()
-        for i in range(sizeN):
-            invertstart = random.randint(0, len(matrix)-1)
-            invertend   = random.randint(0, len(matrix)-1)
+    # ladowanie grafu z pliku
+    @abstractmethod
+    def load(self, filename):
+        pass
 
-            if invertstart > invertend:
-                invertstart, invertend = invertend, invertstart
+    # generowanie losowego grafu
+    @abstractmethod
+    def random(self, size):
+        pass
 
-            # invert
-            st = copy(start)
-            pi = invert(st, invertstart, invertend)
+    # wypisywanie grafu
+    def print_instance(self):
+        for i in range(len(self.matrix)):
+            print(self.matrix[i])
 
-            if invertstart != invertend:
-                N.append(pi)
+    # funkcja celu
+    def f(self, cycle):
+        sum = 0
+        for c in range(len(cycle) - 1):
+            try:
+                sum += self.matrix[cycle[c]][cycle[c + 1]]
+            except IndexError:
+                sum += self.matrix[cycle[c + 1]][cycle[c]]
+        try:
+            sum += self.matrix[cycle[len(cycle) - 1]][cycle[0]]
+        except IndexError:
+            sum += self.matrix[cycle[0]][cycle[len(cycle) - 1]]
+        return sum
 
-        # Czy wygenerowane sąsieddzctwo posiada lepsze PI 
-        isBetter = False
-        for n in N:
-            piprim = copy(n)
-            piprim.extend(n[0:1])
-            currentcost = f(piprim, matrix)
-            
-            if currentcost < startcost:
-                start = piprim[0:len(piprim)-1]
-                startcost = currentcost
-                isBetter = True
+    # blad wzgledny
+    def PRD(self, best_result, result):
+        if type(best_result) == int:
+            f_res = self.f(result)
+            f_best = best_result
+            return ((f_res - f_best) / f_best) * 100
+        elif type(best_result) == list:
+            f_res = self.f(result)
+            f_best = self.f(best_result)
+            return ((f_res - f_best) / f_best) * 100
 
-        if not isBetter:
-            return start
-            
+    # wybieranie zawsze najblizszego sasaiada
+    def nearest_neighbour(self, position=-1):
+        # albo dostajemy albo losujemy pozycje startowa
+        if position == -1:
+            position = random.randint(0, len(self.matrix) - 1)
+        result = [position]
+        # odpowiednie kopiowanie tablicy, bedziemy z niej "usuwac" odwiedzone wierzcholki
+        if isinstance(self.matrix, Full):
+            actual = [row[:] for row in self.matrix]
+        else:
+            actual = [[0 for i in range(len(self.matrix))] for j in range(len(self.matrix))]
+            for i in range(len(self.matrix)):
+                for j in range(i):
+                    value = self.matrix[i][j]
+                    actual[i][j] = value
+                    actual[j][i] = value
+        # wybieramy najblizszy z jeszcze nieodwiedzonych wierzcholkow
+        while len(result) != len(actual[0]):
+            for i in range(len(actual)):
+                actual[i][position] = sys.maxsize
+            position = actual[position].index(min(actual[position]))
+            result.append(position)
+
+        return result
+
+    # wybieranie najlepszego z k losowych rozwiazan
+    def krandom(self, k):
+        best = [i for i in range(len(self.matrix))]
+        cost = self.f(best)
+        for _ in range(k):
+            startprim = [i for i in range(len(self.matrix))]
+            random.shuffle(startprim)
+            currentcost = self.f(startprim)
+            if currentcost < cost:
+                cost = currentcost
+                best = startprim
+        return best
+
+    def twoOPT(self, sizeN):
+        # sizeN to jak wielkie ma być sąsiedztwo
+
+        # rozwiązanie początkowe
+        start = [i for i in range(len(self.matrix))]
+        random.shuffle(start)
+
+        cycle = copy(start)
+        cycle.extend(start[0:1])
+        startcost = self.f(cycle)
+
+        while True:
+            # tworzenie otoczenia
+            N = list()
+            for i in range(sizeN):
+                invertstart = random.randint(0, len(self.matrix) - 1)
+                invertend = random.randint(0, len(self.matrix) - 1)
+
+                if invertstart > invertend:
+                    invertstart, invertend = invertend, invertstart
+
+                # invert
+                st = copy(start)
+                pi = invert(st, invertstart, invertend)
+
+                if invertstart != invertend:
+                    N.append(pi)
+
+            # Czy wygenerowane sąsieddzctwo posiada lepsze PI
+            isBetter = False
+            for n in N:
+                piprim = copy(n)
+                piprim.extend(n[0:1])
+                currentcost = self.f(piprim)
+
+                if currentcost < startcost:
+                    start = piprim[0:len(piprim) - 1]
+                    startcost = currentcost
+                    isBetter = True
+
+            if not isBetter:
+                return start
+
+
+class Full(Graph):
+    def load(self, filename):
+        problem = tsplib95.load(filename)
+        nodeList = list(problem.get_nodes())
+
+        self.matrix = [[None for i in range(len(nodeList))] for j in range(len(nodeList))]
+
+        for i in nodeList:
+            for j in nodeList:
+                self.matrix[i][j] = problem.get_weight(i, j)
+
+    def random(self, size):
+        self.matrix = [[None for i in range(size)] for j in range(size)]
+        for i in range(size):
+            for j in range(size):
+                self.matrix[i][j] = random.randint(0, 1000)
+
+
+class Lower(Graph):
+    def load(self, filename):
+        problem = tsplib95.load(filename)
+        nodeList = list(problem.get_nodes())
+        self.matrix = [[0 for i in range(j + 1)] for j in range(len(nodeList))]
+        for i in nodeList:
+            for j in range(1, i):
+                self.matrix[i - 1][j - 1] = problem.get_weight(i, j)
+
+    def random(self, size):
+        self.matrix = [[0 for i in range(j + 1)] for j in range(size)]
+        for i in range(size):
+            for j in range(i):
+                self.matrix[i][j] = random.randint(0, 1000)
+
+
+class Euc2D(Graph):
+    def __init__(self):
+        Graph.__init__(self)
+        # wspolrzedne
+        self.y = []
+        self.x = []
+
+    def load(self, filename):
+        problem = tsplib95.load(filename)
+        nodeList = list(problem.get_nodes())
+        edgesList = list(problem.get_edges())
+
+        self.matrix = [[None for i in range(j + 1)] for j in range(len(nodeList))]
+
+        for i in range(1, len(nodeList) + 1):
+            self.x.append(problem.node_coords[i][0])
+            self.y.append(problem.node_coords[i][1])
+
+        for i in range(len(edgesList)):
+            edge = edgesList[i]
+            try:
+                self.matrix[edge[0] - 1][edge[1] - 1] = problem.get_weight(*edge)
+            except IndexError:
+                pass
+
+    def random(self, size):
+        self.matrix = [[0 for i in range(j + 1)] for j in range(size)]
+        for i in range(size):
+            self.x.append(random.randint(0, 1000))
+            self.y.append(random.randint(0, 1000))
+
+        for i in range(size):
+            for j in range(i):
+                x1, y1 = (self.x[i], self.y[i])
+                x2, y2 = (self.x[j], self.y[j])
+                self.matrix[i][j] = int(sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))  # część rzeczywista liczby zespolonej
+
+    # graficzne przedstaweienie wyniku
+    def result_graphic(self, result):
+        plt.scatter(self.x, self.y)
+        for i in range(len(self.x)):
+            plt.text(self.x[i], self.y[i], i + 1)
+        plt.plot([self.x[result[i]] for i in range(len(result))], [self.y[result[i]] for i in range(len(result))],
+                 color="red")
+        plt.plot([self.x[result[len(result) - 1]], self.x[result[0]]],
+                 [self.y[result[len(result) - 1]], self.y[result[0]]],
+                 color="red")
+        plt.show()
+
+
+full=Euc2D()
+full.load("berlin52.tsp")
+full.print_instance()
+res=full.twoOPT(1000)
+print_result(res)
+full.result_graphic(res)
+
+randFull = Euc2D()
+randFull.random(20)
+randFull.print_instance()
+res = randFull.nearest_neighbour()
+print_result(res)
+randFull.result_graphic(res)
+
