@@ -3,6 +3,7 @@ import sys
 from copy import copy, deepcopy
 import random
 from math import sqrt
+from time import process_time_ns
 import numpy
 import tsplib95
 from matplotlib import pyplot as plt
@@ -270,8 +271,36 @@ def measurememory(obj, filename, k, type):
 
     del matrix, mem_before, mem_after
 
-for i in range(7, 15, 2):
-    measurememory(Lower(), 'berlin52.tsp', i, "nearest")
+def measurePSD(obj, filename, k=14, freftsplib=-1):
+    # how to run? i. e. measurePSD(Full(), 'berlin52.tsp')
+    # or measurePSD(Full(), 'berlin52.tsp', freftsplib=7542), but in this case we have to know which is the best optional solution
+    # http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/STSP.html
+    matrix = obj
+    matrix.load(filename)
+
+    c1 = matrix.krandom(2 ** k)
+    f1 = matrix.f(c1)
+    c2 = matrix.twoOPT(2 ** k)
+    f2 = matrix.f(c2)
+    c3 = matrix.nearest_neighbour()
+    f3 = matrix.f(c3)
+
+    pdrArray = list()
+    pdrArray.append(f1)
+    pdrArray.append(f2)
+    pdrArray.append(f3)
+
+    fref = freftsplib
+    if fref == -1:
+        fref = min(pdrArray)
+        print(fref)
+    
+
+    frefArray = list()
+    for i in range(len(pdrArray)):
+        frefArray.append((pdrArray[i] - fref)/fref * 100)
+    
+    return frefArray
 
 
 full=Euc2D()
