@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import math
-=======
 from audioop import avg
->>>>>>> f68837ffeece429912e86e5c9f4fe9413d7ca405
 from concurrent.futures import process
 import sys
 import os
@@ -314,20 +311,17 @@ def measurePSD(obj, filename, k=14, freftsplib=-1):
     return frefArray
 
 
-
-
-
 def timeStats(graph):
-    sizes = [10, 50, 100, 200, 300]
+    sizes = [10,50,100,200,300]
     scores_krandom = []
     scores_nearest = []
     scores_opt = []
-    for size in sizes:
+    for size in range(1,14):
         score1 = 0
         score2 = 0
         score3 = 0
         for i in range(10):
-            graph.random(size)
+            graph.load("br17.atsp")
             start = time.time()
             graph.krandom(10)
             end = time.time()
@@ -357,7 +351,7 @@ def timeStats(graph):
     plt.show()
 
 
-full = Full()
+full =Full()
 timeStats(full)
 #
 # euc=Euc2D()
