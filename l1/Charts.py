@@ -37,15 +37,31 @@ class Splitter():
         self.y2opt = list()
         self.ynearest = list()
 
-    def read(self):
+    def read(self, type):
         file = open(self.filename)
         lines = file.readlines()
-        for line in lines:
-            l = line.split(" ")
-            self.x.append(int(l[0]))
-            self.ykrandom.append(float(l[1]))
-            self.y2opt.append(float(l[2]))
-            self.ynearest.append(float(l[3]))
+        if type == "PRD":
+            for line in lines:
+                l = line.split(" ")
+                self.x.append(int(l[0]))
+                self.ykrandom.append(float(l[1]))
+                self.y2opt.append(float(l[2]))
+                self.ynearest.append(float(l[3]))
+        elif type == "memoryBerlin":
+            for line in range(len(lines)):
+                print(lines[line])
+                l = lines[line].split(" ")
+                if line < 5:
+                    self.x.append(int(l[2]))
+
+                if l[1] == "twoOPT":
+                    self.y2opt.append(int(l[3]))
+                elif l[1] == "krandom":
+                    self.ykrandom.append(int(l[3]))
+                elif l[1] == "nearest":
+                    self.ynearest.append(int(l[3]))
+                else:
+                    pass
         file.close()
 
     def getX(self):
@@ -60,17 +76,37 @@ class Splitter():
     def getYnearest(self):
         return self.ynearest
 
-s = Splitter("./data/PRD.txt")
-s.read()
+# ====================
+# == Berlin52Memory
+# ====================
+#
+# s = Splitter("./data/memoryBerlin52.txt")
+# s.read("memoryBerlin")
+# # print(s.getYnearest())
 
-char = Charts("PRD", "rozmiar instacji", "PRD")
-char.load(s.getX(), s.getYkrandom(), "krandom")
-char.load(s.getX(), s.getY2opt(), "2 OPT")
-char.load(s.getX(), s.getYnearest(), "nearest")
-char.plot()
+# char = Charts("Berlin Memory", "k", "Memory (bytes)")
+# char.load(s.getX(), s.getYkrandom(), "krandom")
+# char.load(s.getX(), s.getY2opt(), "2 OPT")
+# char.load(s.getX(), s.getYnearest(), "nearest")
+# char.plot()
 
+# ====================
+# == PRD
+# ====================
+#
+# s = Splitter("./data/PRD3.txt")
+# s.read()
 
+# char = Charts("PRD", "rozmiar instacji", "PRD")
+# char.load(s.getX(), s.getYkrandom(), "krandom")
+# char.load(s.getX(), s.getY2opt(), "2 OPT")
+# char.load(s.getX(), s.getYnearest(), "nearest")
+# char.plot()
 
+# ====================
+# == PRD - generate data
+# ====================
+#
 # generowanie danych do PRD -> plik ./data/PRD.txt
 # for i in range(10, 50, 2):
 #     krandomavg, twoOPTabg, nearestavg = list(), list(), list()
