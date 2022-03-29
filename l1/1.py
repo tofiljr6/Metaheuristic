@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import math
+=======
+from audioop import avg
+>>>>>>> f68837ffeece429912e86e5c9f4fe9413d7ca405
 from concurrent.futures import process
 import sys
 import os
@@ -8,6 +12,7 @@ from copy import copy, deepcopy
 import random
 from math import sqrt
 from time import process_time_ns
+from tokenize import String
 import numpy
 import tsplib95
 from matplotlib import pyplot as plt
@@ -277,8 +282,11 @@ def measurePSD(obj, filename, k=14, freftsplib=-1):
     # or measurePSD(Full(), 'berlin52.tsp', freftsplib=7542), but in this case we have to know which is the best optional solution
     # http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/STSP.html
     matrix = obj
-    matrix.load(filename)
-
+    if type(filename) == String:
+        matrix.load(filename)
+    else:
+        matrix.random(filename)
+        
     c1 = matrix.krandom(2 ** k)
     f1 = matrix.f(c1)
     c2 = matrix.twoOPT(2 ** k)
@@ -300,7 +308,13 @@ def measurePSD(obj, filename, k=14, freftsplib=-1):
     for i in range(len(pdrArray)):
         frefArray.append((pdrArray[i] - fref) / fref * 100)
 
+    # freeArray[0] - krandom result
+    # freeArray[1] - 2OPT result
+    # freeArray[2] - nearest neighbour
     return frefArray
+
+
+
 
 
 def timeStats(graph):
