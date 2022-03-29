@@ -1,3 +1,4 @@
+from concurrent.futures import process
 import sys
 from copy import copy, deepcopy
 import random
@@ -159,7 +160,7 @@ class Full(Graph):
 
         for i in nodeList:
             for j in nodeList:
-                self.matrix[i][j] = problem.get_weight(i, j)
+                self.matrix[i-1][j-1] = problem.get_weight(i, j)
 
     def random(self, size):
         self.matrix = [[None for i in range(size)] for j in range(size)]
@@ -232,6 +233,45 @@ class Euc2D(Graph):
                  [self.y[result[len(result) - 1]], self.y[result[0]]],
                  color="red")
         plt.show()
+
+import os
+import psutil
+
+
+# randFull = Euc2D()
+# randFull.load('berlin52.tsp')
+# randFull.print_instance()
+# res = randFull.nearest_neighbour()
+# # print_result(res)
+# print(randFull.f(res))
+# print(randFull.PRD(7542, res))
+
+
+def measurememory(obj, filename, k, type):
+    matrix = obj
+    matrix.load(filename)
+    process = psutil.Process(os.getpid())
+    if type == "twoOPT":
+        mem_before = process.memory_info().rss
+        matrix.twoOPT(2 ** k)
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+    elif type == "krandom":
+        mem_before = process.memory_info().rss
+        matrix.krandom(2 ** k)
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+    elif type == "nearest":
+        mem_before = process.memory_info().rss
+        matrix.nearest_neighbour()
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+
+
+    del matrix, mem_before, mem_after
+
+for i in range(7, 15, 2):
+    measurememory(Lower(), 'berlin52.tsp', i, "nearest")
 
 
 full=Euc2D()
