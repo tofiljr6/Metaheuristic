@@ -1,4 +1,5 @@
 import sys
+import time
 from copy import copy, deepcopy
 import random
 from math import sqrt
@@ -234,17 +235,46 @@ class Euc2D(Graph):
         plt.show()
 
 
-full=Euc2D()
-full.load("berlin52.tsp")
-full.print_instance()
-res=full.twoOPT(1000)
-print_result(res)
-full.result_graphic(res)
+def timeStats(graph):
+    sizes = [10, 50, 100, 200, 300]
+    scores_krandom=[]
+    scores_nearest = []
+    scores_opt = []
+    for size in sizes:
+        score1=0
+        score2=0
+        score3 = 0
+        for i in range(10):
+            graph.random(size)
+            start = time.time()
+            graph.krandom(10)
+            end = time.time()
+            score1 += (end - start)
+            start = time.time()
+            graph.nearest_neighbour()
+            end = time.time()
+            score2 += (end - start)
+            start = time.time()
+            graph.twoOPT(int(size/4))
+            end = time.time()
+            score3 += (end - start)
+        scores_krandom.append(score1 / 10)
+        scores_nearest.append(score2 / 10)
+        scores_opt.append(score3/10)
+    plt.plot(sizes,scores_krandom,
+                 color="red",marker="o",label="k-random")
+    plt.plot(sizes,scores_nearest,
+             color="green",marker="o",label="nearest neighbour")
+    plt.plot(sizes,scores_opt,
+             color="blue",marker="o",label="2-OPT")
+    plt.grid(True)
+    plt.legend(loc="upper left")
+    plt.title("Time complexity of heuristic algorithms")
+    plt.xlabel("Size")
+    plt.ylabel("Time")
+    plt.show()
 
-randFull = Euc2D()
-randFull.random(20)
-randFull.print_instance()
-res = randFull.nearest_neighbour()
-print_result(res)
-randFull.result_graphic(res)
+full=Full()
+timeStats(full)
+
 
