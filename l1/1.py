@@ -1,8 +1,10 @@
+from concurrent.futures import process
 import sys
 import time
 from copy import copy, deepcopy
 import random
 from math import sqrt
+from time import process_time_ns
 import numpy
 import tsplib95
 from matplotlib import pyplot as plt
@@ -160,7 +162,7 @@ class Full(Graph):
 
         for i in nodeList:
             for j in nodeList:
-                self.matrix[i][j] = problem.get_weight(i, j)
+                self.matrix[i-1][j-1] = problem.get_weight(i, j)
 
     def random(self, size):
         self.matrix = [[None for i in range(size)] for j in range(size)]
@@ -233,6 +235,73 @@ class Euc2D(Graph):
                  [self.y[result[len(result) - 1]], self.y[result[0]]],
                  color="red")
         plt.show()
+
+import os
+import psutil
+
+
+# randFull = Euc2D()
+# randFull.load('berlin52.tsp')
+# randFull.print_instance()
+# res = randFull.nearest_neighbour()
+# # print_result(res)
+# print(randFull.f(res))
+# print(randFull.PRD(7542, res))
+
+
+def measurememory(obj, filename, k, type):
+    matrix = obj
+    matrix.load(filename)
+    process = psutil.Process(os.getpid())
+    if type == "twoOPT":
+        mem_before = process.memory_info().rss
+        matrix.twoOPT(2 ** k)
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+    elif type == "krandom":
+        mem_before = process.memory_info().rss
+        matrix.krandom(2 ** k)
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+    elif type == "nearest":
+        mem_before = process.memory_info().rss
+        matrix.nearest_neighbour()
+        mem_after = process.memory_info().rss
+        print(obj.__class__.__name__, k, mem_after - mem_before)
+
+
+    del matrix, mem_before, mem_after
+
+def measurePSD(obj, filename, k=14, freftsplib=-1):
+    # how to run? i. e. measurePSD(Full(), 'berlin52.tsp')
+    # or measurePSD(Full(), 'berlin52.tsp', freftsplib=7542), but in this case we have to know which is the best optional solution
+    # http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/STSP.html
+    matrix = obj
+    matrix.load(filename)
+
+    c1 = matrix.krandom(2 ** k)
+    f1 = matrix.f(c1)
+    c2 = matrix.twoOPT(2 ** k)
+    f2 = matrix.f(c2)
+    c3 = matrix.nearest_neighbour()
+    f3 = matrix.f(c3)
+
+    pdrArray = list()
+    pdrArray.append(f1)
+    pdrArray.append(f2)
+    pdrArray.append(f3)
+
+    fref = freftsplib
+    if fref == -1:
+        fref = min(pdrArray)
+        print(fref)
+    
+
+    frefArray = list()
+    for i in range(len(pdrArray)):
+        frefArray.append((pdrArray[i] - fref)/fref * 100)
+    
+    return frefArray
 
 
 def timeStats(graph):
