@@ -63,7 +63,9 @@ class Graph(ABC):
             sum += self.matrix[cycle[len(cycle) - 1]][cycle[0]]
         except IndexError:
             sum += self.matrix[cycle[0]][cycle[len(cycle) - 1]]
+        #print("Cycle size: ",sum)
         return sum
+
 
     # blad wzgledny
     def PRD(self, best_result, result):
@@ -104,6 +106,7 @@ class Graph(ABC):
     # wybieranie najlepszego z k losowych rozwiazan
     def krandom(self, k):
         best = [i for i in range(len(self.matrix))]
+        random.shuffle(best)
         cost = self.f(best)
         for _ in range(k):
             startprim = [i for i in range(len(self.matrix))]
@@ -251,77 +254,77 @@ class Euc2D(Graph):
 # print(randFull.PRD(7542, res))
 
 
-def measurememory(obj, filename, k, type):
-    matrix = obj
-    matrix.load(filename)
-    process = psutil.Process(os.getpid())
-    if type == "twoOPT":
-        mem_before = process.memory_info().rss
-        matrix.twoOPT(2 ** k)
-        mem_after = process.memory_info().rss
-        print(obj.__class__.__name__, k, mem_after - mem_before)
-    elif type == "krandom":
-        mem_before = process.memory_info().rss
-        matrix.krandom(2 ** k)
-        mem_after = process.memory_info().rss
-        print(obj.__class__.__name__, k, mem_after - mem_before)
-    elif type == "nearest":
-        mem_before = process.memory_info().rss
-        matrix.nearest_neighbour()
-        mem_after = process.memory_info().rss
-        print(obj.__class__.__name__, k, mem_after - mem_before)
-
-    del matrix, mem_before, mem_after
-
-
-def measurePSD(obj, filename, k=14, freftsplib=-1):
-    # how to run? i. e. measurePSD(Full(), 'berlin52.tsp')
-    # or measurePSD(Full(), 'berlin52.tsp', freftsplib=7542), but in this case we have to know which is the best optional solution
-    # http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/STSP.html
-    matrix = obj
-    if type(filename) == String:
-        matrix.load(filename)
-    else:
-        matrix.random(filename)
-        
-    c1 = matrix.krandom(2 ** k)
-    f1 = matrix.f(c1)
-    c2 = matrix.twoOPT(2 ** k)
-    f2 = matrix.f(c2)
-    c3 = matrix.nearest_neighbour()
-    f3 = matrix.f(c3)
-
-    pdrArray = list()
-    pdrArray.append(f1)
-    pdrArray.append(f2)
-    pdrArray.append(f3)
-
-    fref = freftsplib
-    if fref == -1:
-        fref = min(pdrArray)
-        print(fref)
-
-    frefArray = list()
-    for i in range(len(pdrArray)):
-        frefArray.append((pdrArray[i] - fref) / fref * 100)
-
-    # freeArray[0] - krandom result
-    # freeArray[1] - 2OPT result
-    # freeArray[2] - nearest neighbour
-    return frefArray
-
-
+# def measurememory(obj, filename, k, type):
+#     matrix = obj
+#     matrix.load(filename)
+#     process = psutil.Process(os.getpid())
+#     if type == "twoOPT":
+#         mem_before = process.memory_info().rss
+#         matrix.twoOPT(2 ** k)
+#         mem_after = process.memory_info().rss
+#         print(obj.__class__.__name__, k, mem_after - mem_before)
+#     elif type == "krandom":
+#         mem_before = process.memory_info().rss
+#         matrix.krandom(2 ** k)
+#         mem_after = process.memory_info().rss
+#         print(obj.__class__.__name__, k, mem_after - mem_before)
+#     elif type == "nearest":
+#         mem_before = process.memory_info().rss
+#         matrix.nearest_neighbour()
+#         mem_after = process.memory_info().rss
+#         print(obj.__class__.__name__, k, mem_after - mem_before)
+#
+#     del matrix, mem_before, mem_after
+#
+#
+# def measurePSD(obj, filename, k=14, freftsplib=-1):
+#     # how to run? i. e. measurePSD(Full(), 'berlin52.tsp')
+#     # or measurePSD(Full(), 'berlin52.tsp', freftsplib=7542), but in this case we have to know which is the best optional solution
+#     # http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/STSP.html
+#     matrix = obj
+#     if type(filename) == String:
+#         matrix.load(filename)
+#     else:
+#         matrix.random(filename)
+#
+#     c1 = matrix.krandom(2 ** k)
+#     f1 = matrix.f(c1)
+#     c2 = matrix.twoOPT(2 ** k)
+#     f2 = matrix.f(c2)
+#     c3 = matrix.nearest_neighbour()
+#     f3 = matrix.f(c3)
+#
+#     pdrArray = list()
+#     pdrArray.append(f1)
+#     pdrArray.append(f2)
+#     pdrArray.append(f3)
+#
+#     fref = freftsplib
+#     if fref == -1:
+#         fref = min(pdrArray)
+#         print(fref)
+#
+#     frefArray = list()
+#     for i in range(len(pdrArray)):
+#         frefArray.append((pdrArray[i] - fref) / fref * 100)
+#
+#     # freeArray[0] - krandom result
+#     # freeArray[1] - 2OPT result
+#     # freeArray[2] - nearest neighbour
+#     return frefArray
+#
+#
 def timeStats(graph):
     sizes = [10,50,100,200,300]
     scores_krandom = []
     scores_nearest = []
     scores_opt = []
-    for size in range(1,14):
+    for size in sizes:
         score1 = 0
         score2 = 0
         score3 = 0
         for i in range(10):
-            graph.load("br17.atsp")
+            graph.random(size)
             start = time.time()
             graph.krandom(10)
             end = time.time()
@@ -351,12 +354,193 @@ def timeStats(graph):
     plt.show()
 
 
-full =Full()
-timeStats(full)
-#
-# euc=Euc2D()
-# euc.random(20)
-# euc.print_instance()
-# res=euc.nearest_neighbour()
-# print_result(res)
-# euc.result_graphic(res)
+def memoryStats(graph):
+    process = psutil.Process(os.getpid())
+    sizes = [10,50,100,200,300]
+    scores_krandom = []
+    scores_nearest = []
+    scores_opt = []
+    for size in sizes:
+        score1 = 0
+        score2 = 0
+        score3 = 0
+        for i in range(10):
+            graph.random(size)
+            start = process.memory_info().rss
+            graph.krandom(10)
+            end = process.memory_info().rss
+            score1 += (end - start)
+            start = process.memory_info().rss
+            graph.nearest_neighbour()
+            end = process.memory_info().rss
+            score2 += (end - start)
+            start = process.memory_info().rss
+            graph.twoOPT(10)
+            end = process.memory_info().rss
+            score3 += (end - start)
+        scores_krandom.append(score1 / 10)
+        scores_nearest.append(score2 / 10)
+        scores_opt.append(score3 / 10)
+    plt.plot(sizes, scores_krandom,
+             color="red", marker="o", label="k-random")
+    plt.plot(sizes, scores_nearest,
+             color="green", marker="o", label="nearest neighbour")
+    plt.plot(sizes, scores_opt,
+             color="blue", marker="o", label="2-opt")
+    plt.grid(True)
+    plt.legend(loc="upper left")
+    plt.title("Time complexity oh heuristic algorithms")
+    plt.xlabel("Size")
+    plt.ylabel("Time")
+    plt.show()
+
+
+def PRDStats(graph):
+    sizes = [10,100,500,1000,5000,10000]
+    scores_krandom = []
+    scores_nearest = []
+    scores_opt = []
+    for size in sizes:
+        score1 = 0
+        score2 = 0
+        score3 = 0
+        for i in range(10):
+            graph.random(size)
+            result1=graph.krandom(size)
+            result2=graph.nearest_neighbour()
+            result3=graph.twoOPT(size)
+            mini=min([graph.f(result1),graph.f(result2),graph.f(result3)])
+            score1+=graph.PRD(mini,result1)
+            score2+=graph.PRD(mini, result2)
+            score3+=graph.PRD(mini, result3)
+        scores_krandom.append(score1 / 10)
+        scores_nearest.append(score2 / 10)
+        scores_opt.append(score3 / 10)
+    plt.plot(sizes, scores_krandom,
+             color="red", marker="o", label="k-random")
+    plt.plot(sizes, scores_nearest,
+             color="green", marker="o", label="nearest neighbour")
+    plt.plot(sizes, scores_opt,
+             color="blue", marker="o", label="2-opt")
+    plt.grid(True)
+    plt.legend(loc="upper left")
+    plt.title("PRD of heuristic algorithms")
+    plt.xlabel("Size")
+    plt.ylabel("PRD")
+    plt.show()
+
+def test(instance,data,k,m,opt):
+    if type(data) is int:
+        instance.random(data)
+    else:
+        instance.load(data)
+    instance.print_instance()
+    for value in k:
+        print("K-RANDOM ",value)
+        result= instance.krandom(value)
+        print_result(result)
+        if type(instance) is Euc2D:
+            instance.result_graphic(result)
+        print("Cycle size: ", instance.f(result))
+        print("PRD: ", instance.PRD(opt, result))
+    print("NEAREST NEIGHBOUR")
+    result = instance.nearest_neighbour()
+    print_result(result)
+    if type(instance) is Euc2D:
+        instance.result_graphic(result)
+    print("Cycle size: ", instance.f(result))
+    print("PRD: ", instance.PRD(opt, result))
+    for value in m:
+        print("2-OPT ", value)
+        result = instance.twoOPT(value)
+        print_result(result)
+        if type(instance) is Euc2D:
+            instance.result_graphic(result)
+        print("Cycle size: ", instance.f(result))
+        print("PRD: ", instance.PRD(opt, result))
+
+
+
+#test(Full(),"ftv47.atsp",[10,1000,100000],[10000,100],1776)
+
+
+# full=Full()
+# full.load("ftv47.atsp")
+# full.print_instance()
+# fullRes=full.krandom(10)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(1776,fullRes))
+# fullRes=full.krandom(1000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(1776,fullRes))
+# fullRes=full.krandom(100000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(1776,fullRes))
+# fullRes=full.nearest_neighbour()
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(1776,fullRes))
+# fullRes=full.twoOPT(10000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(1776,fullRes))
+
+
+
+# full=Euc2D()
+# full.load("berlin52.tsp")
+# full.print_instance()
+# fullRes=full.krandom(10)
+# full.result_graphic(fullRes)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(7542,fullRes))
+# fullRes=full.krandom(1000)
+# full.result_graphic(fullRes)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(7542,fullRes))
+# fullRes=full.krandom(100000)
+# full.result_graphic(fullRes)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(7542,fullRes))
+# fullRes=full.nearest_neighbour()
+# full.result_graphic(fullRes)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(7542,fullRes))
+# fullRes=full.twoOPT(1000)
+# full.result_graphic(fullRes)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(7542,fullRes))
+
+# full=Lower()
+# full.load("gr120.tsp")
+# full.print_instance()
+# fullRes=full.krandom(10)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(6942,fullRes))
+# fullRes=full.krandom(1000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(6942,fullRes))
+# fullRes=full.krandom(100000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(6942,fullRes))
+# fullRes=full.nearest_neighbour()
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(6942,fullRes))
+# fullRes=full.twoOPT(1000)
+# print_result(fullRes)
+# print("Cycle size: ",full.f(fullRes))
+# print("PRD: ",full.PRD(6942,fullRes))
+
+

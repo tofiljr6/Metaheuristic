@@ -29,52 +29,52 @@ class Charts:
         plt.legend()
         plt.show()
 
-class Splitter():
-    def __init__(self, filename):
-        self.filename = filename
-        self.x = list()
-        self.ykrandom = list()
-        self.y2opt = list()
-        self.ynearest = list()
-
-    def read(self, type):
-        file = open(self.filename)
-        lines = file.readlines()
-        if type == "PRD":
-            for line in lines:
-                l = line.split(" ")
-                self.x.append(int(l[0]))
-                self.ykrandom.append(float(l[1]))
-                self.y2opt.append(float(l[2]))
-                self.ynearest.append(float(l[3]))
-        elif type == "memoryBerlin":
-            for line in range(len(lines)):
-                print(lines[line])
-                l = lines[line].split(" ")
-                if line < 5:
-                    self.x.append(int(l[2]))
-
-                if l[1] == "twoOPT":
-                    self.y2opt.append(int(l[3]))
-                elif l[1] == "krandom":
-                    self.ykrandom.append(int(l[3]))
-                elif l[1] == "nearest":
-                    self.ynearest.append(int(l[3]))
-                else:
-                    pass
-        file.close()
-
-    def getX(self):
-        return self.x
-
-    def getYkrandom(self):
-        return self.ykrandom
-
-    def getY2opt(self):
-        return self.y2opt
-
-    def getYnearest(self):
-        return self.ynearest
+# class Splitter():
+#     def __init__(self, filename):
+#         self.filename = filename
+#         self.x = list()
+#         self.ykrandom = list()
+#         self.y2opt = list()
+#         self.ynearest = list()
+#
+#     def read(self, type):
+#         file = open(self.filename)
+#         lines = file.readlines()
+#         if type == "PRD":
+#             for line in lines:
+#                 l = line.split(" ")
+#                 self.x.append(int(l[0]))
+#                 self.ykrandom.append(float(l[1]))
+#                 self.y2opt.append(float(l[2]))
+#                 self.ynearest.append(float(l[3]))
+#         elif type == "memoryBerlin":
+#             for line in range(len(lines)):
+#                 print(lines[line])
+#                 l = lines[line].split(" ")
+#                 if line < 5:
+#                     self.x.append(int(l[2]))
+#
+#                 if l[1] == "twoOPT":
+#                     self.y2opt.append(int(l[3]))
+#                 elif l[1] == "krandom":
+#                     self.ykrandom.append(int(l[3]))
+#                 elif l[1] == "nearest":
+#                     self.ynearest.append(int(l[3]))
+#                 else:
+#                     pass
+#         file.close()
+#
+#     def getX(self):
+#         return self.x
+#
+#     def getYkrandom(self):
+#         return self.ykrandom
+#
+#     def getY2opt(self):
+#         return self.y2opt
+#
+#     def getYnearest(self):
+#         return self.ynearest
 
 # ====================
 # == Berlin52Memory
