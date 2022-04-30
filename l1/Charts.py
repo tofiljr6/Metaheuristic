@@ -7,6 +7,7 @@ class Charts:
         self.title = title
         self.xlabel = xlabel
         self.ylabel = ylabel
+        self.colors=list()
         self.labels = list()
 
     def loadx(self, lista):
@@ -15,18 +16,20 @@ class Charts:
     def loady(self, lista):
         self.y.append(lista)
 
-    def load(self, x, y, label):
+    def load(self, x, y,color, label):
         self.loadx(x)
         self.loady(y)
+        self.colors.append(color)
         self.labels.append(label)
         
     def plot(self):
         for i in range(len(self.x)):
-            plt.plot(self.x[i], self.y[i], label=self.labels[i])
+            plt.plot(self.x[i], self.y[i],color=self.colors[i], marker="o", label=self.labels[i])
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.title(self.title)
-        plt.legend()
+        plt.grid(True)
+        plt.legend(loc="upper left")
         plt.show()
 
 # class Splitter():

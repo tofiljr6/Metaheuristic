@@ -1,6 +1,3 @@
-import math
-from audioop import avg
-from concurrent.futures import process
 import sys
 import os
 import psutil
@@ -8,12 +5,10 @@ import time
 from copy import copy, deepcopy
 import random
 from math import sqrt
-from time import process_time_ns
-from tokenize import String
-import numpy
 import tsplib95
 from matplotlib import pyplot as plt
 from abc import ABC, abstractmethod
+from Charts import Charts
 
 
 # wypisywanie cyklu
@@ -27,6 +22,19 @@ def print_result(result):
 def invert(vector, i, j):
     vector[i:j + 1] = vector[i:j + 1][::-1]
     return vector
+
+
+# zamiana dwoch elementow
+def swap(vector, i, j):
+    vector[i], vector[j] = vector[j], vector[i]
+    return vector
+
+
+# wstawienie i-tego elemntu na miejsce j-te
+def insert(vector, i, j):
+    new = vector[0:i] + vector[i + 1:]
+    new.insert(j, vector[i])
+    return new
 
 
 # klasa abstrakcyjna grafu
@@ -63,9 +71,8 @@ class Graph(ABC):
             sum += self.matrix[cycle[len(cycle) - 1]][cycle[0]]
         except IndexError:
             sum += self.matrix[cycle[0]][cycle[len(cycle) - 1]]
-        #print("Cycle size: ",sum)
+        # print("Cycle size: ",sum)
         return sum
-
 
     # blad wzgledny
     def PRD(self, best_result, result):
@@ -88,7 +95,7 @@ class Graph(ABC):
         if isinstance(self.matrix, Full):
             actual = [row[:] for row in self.matrix]
         else:
-            actual = [[0 for i in range(len(self.matrix))] for j in range(len(self.matrix))]
+            actual = [[0 for _ in range(len(self.matrix))] for _ in range(len(self.matrix))]
             for i in range(len(self.matrix)):
                 for j in range(i):
                     value = self.matrix[i][j]
@@ -160,6 +167,39 @@ class Graph(ABC):
             if not isBetter:
                 return start
 
+    # argumenty to rozwiazanie poczatkowe, lub funkcja ktora je generuje wraz z argumentem,
+    # funkcja ktora generuje sasiedztwo wraz z jego rozmiarem,
+    # rozmiar listy tabu
+    # warunek stopu
+    def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000):
+        if callable(start):
+            solution = start(arg)
+        elif type(start) == list:
+            solution = start
+        else:
+            solution = [i for i in range(len(self.matrix))]
+            random.shuffle(solution)
+        best=self.f(solution)
+        iteration = 0
+        iterationNoChange = 0
+       # while iterationNoChange<stop:
+        while iteration < stop:
+            iteration+=1
+            for _ in range(size):
+                while True:
+                    s = random.randint(0, len(self.matrix) - 1)
+                    e = random.randint(0, len(self.matrix) - 1)
+                    if s!=e:
+                        break
+                if s > e:
+                    s, e = e, s
+            neighbour = neighbourhood(solution, s, e)
+            new=self.f(neighbour)
+            if new<best:
+                solution=neighbour
+                best=new
+        return solution
+
 
 class Full(Graph):
     def load(self, filename):
@@ -177,6 +217,8 @@ class Full(Graph):
         for i in range(size):
             for j in range(size):
                 self.matrix[i][j] = random.randint(0, 1000)
+
+
 
 
 class Lower(Graph):
@@ -245,15 +287,6 @@ class Euc2D(Graph):
         plt.show()
 
 
-# randFull = Euc2D()
-# randFull.load('berlin52.tsp')
-# randFull.print_instance()
-# res = randFull.nearest_neighbour()
-# # print_result(res)
-# print(randFull.f(res))
-# print(randFull.PRD(7542, res))
-
-
 # def measurememory(obj, filename, k, type):
 #     matrix = obj
 #     matrix.load(filename)
@@ -315,7 +348,7 @@ class Euc2D(Graph):
 #
 #
 def timeStats(graph):
-    sizes = [10,50,100,200,300]
+    sizes = [10, 50, 100, 200, 300]
     scores_krandom = []
     scores_nearest = []
     scores_opt = []
@@ -340,23 +373,16 @@ def timeStats(graph):
         scores_krandom.append(score1 / 10)
         scores_nearest.append(score2 / 10)
         scores_opt.append(score3 / 10)
-    plt.plot(sizes, scores_krandom,
-             color="red", marker="o", label="k-random")
-    plt.plot(sizes, scores_nearest,
-             color="green", marker="o", label="nearest neighbour")
-    plt.plot(sizes, scores_opt,
-             color="blue", marker="o", label="2-opt")
-    plt.grid(True)
-    plt.legend(loc="upper left")
-    plt.title("Time complexity oh heuristic algorithms")
-    plt.xlabel("Size")
-    plt.ylabel("Time")
-    plt.show()
+    chart = Charts("Time complexity of heuristic algorithms", "Size", "Time")
+    chart.load(sizes, scores_krandom, "red", "k-random")
+    chart.load(sizes, scores_nearest, "green", "nearest-neighbour")
+    chart.load(sizes, scores_opt, "blue", "2-opt")
+    chart.plot()
 
 
 def memoryStats(graph):
     process = psutil.Process(os.getpid())
-    sizes = [10,50,100,200,300]
+    sizes = [10, 50, 100, 200, 300]
     scores_krandom = []
     scores_nearest = []
     scores_opt = []
@@ -381,22 +407,15 @@ def memoryStats(graph):
         scores_krandom.append(score1 / 10)
         scores_nearest.append(score2 / 10)
         scores_opt.append(score3 / 10)
-    plt.plot(sizes, scores_krandom,
-             color="red", marker="o", label="k-random")
-    plt.plot(sizes, scores_nearest,
-             color="green", marker="o", label="nearest neighbour")
-    plt.plot(sizes, scores_opt,
-             color="blue", marker="o", label="2-opt")
-    plt.grid(True)
-    plt.legend(loc="upper left")
-    plt.title("Time complexity oh heuristic algorithms")
-    plt.xlabel("Size")
-    plt.ylabel("Time")
-    plt.show()
+    chart = Charts("Memory complexity of heuristic algorithms", "Memory", "Time")
+    chart.load(sizes, scores_krandom, "red", "k-random")
+    chart.load(sizes, scores_nearest, "green", "nearest-neighbour")
+    chart.load(sizes, scores_opt, "blue", "2-opt")
+    chart.plot()
 
 
 def PRDStats(graph):
-    sizes = [10,100,500,1000,5000,10000]
+    sizes = [10, 100, 500, 1000, 5000, 10000]
     scores_krandom = []
     scores_nearest = []
     scores_opt = []
@@ -406,62 +425,59 @@ def PRDStats(graph):
         score3 = 0
         for i in range(10):
             graph.random(size)
-            result1=graph.krandom(size)
-            result2=graph.nearest_neighbour()
-            result3=graph.twoOPT(size)
-            mini=min([graph.f(result1),graph.f(result2),graph.f(result3)])
-            score1+=graph.PRD(mini,result1)
-            score2+=graph.PRD(mini, result2)
-            score3+=graph.PRD(mini, result3)
+            result1 = graph.krandom(size)
+            result2 = graph.nearest_neighbour()
+            result3 = graph.twoOPT(size)
+            mini = min([graph.f(result1), graph.f(result2), graph.f(result3)])
+            score1 += graph.PRD(mini, result1)
+            score2 += graph.PRD(mini, result2)
+            score3 += graph.PRD(mini, result3)
         scores_krandom.append(score1 / 10)
         scores_nearest.append(score2 / 10)
         scores_opt.append(score3 / 10)
-    plt.plot(sizes, scores_krandom,
-             color="red", marker="o", label="k-random")
-    plt.plot(sizes, scores_nearest,
-             color="green", marker="o", label="nearest neighbour")
-    plt.plot(sizes, scores_opt,
-             color="blue", marker="o", label="2-opt")
-    plt.grid(True)
-    plt.legend(loc="upper left")
-    plt.title("PRD of heuristic algorithms")
-    plt.xlabel("Size")
-    plt.ylabel("PRD")
-    plt.show()
+    chart = Charts("PRD of heuristic algorithms", "PRD", "Time")
+    chart.load(sizes, scores_krandom, "red", "k-random")
+    chart.load(sizes, scores_nearest, "green", "nearest-neighbour")
+    chart.load(sizes, scores_opt, "blue", "2-opt")
+    chart.plot()
 
-def test(instance,data,k,m,opt):
-    if type(data) is int:
-        instance.random(data)
-    else:
-        instance.load(data)
-    instance.print_instance()
-    for value in k:
-        print("K-RANDOM ",value)
-        result= instance.krandom(value)
-        print_result(result)
-        if type(instance) is Euc2D:
-            instance.result_graphic(result)
-        print("Cycle size: ", instance.f(result))
-        print("PRD: ", instance.PRD(opt, result))
-    print("NEAREST NEIGHBOUR")
-    result = instance.nearest_neighbour()
-    print_result(result)
-    if type(instance) is Euc2D:
-        instance.result_graphic(result)
-    print("Cycle size: ", instance.f(result))
-    print("PRD: ", instance.PRD(opt, result))
-    for value in m:
-        print("2-OPT ", value)
-        result = instance.twoOPT(value)
-        print_result(result)
-        if type(instance) is Euc2D:
-            instance.result_graphic(result)
-        print("Cycle size: ", instance.f(result))
-        print("PRD: ", instance.PRD(opt, result))
+full = Full()
+full.random(10)
+print_result(full.tabuSearch(full.twoOPT, 100, invert, 100, 10, 10000))
 
 
+# def test(instance,data,k,m,opt):
+#     if type(data) is int:
+#         instance.random(data)
+#     else:
+#         instance.load(data)
+#     instance.print_instance()
+#     for value in k:
+#         print("K-RANDOM ",value)
+#         result= instance.krandom(value)
+#         print_result(result)
+#         if type(instance) is Euc2D:
+#             instance.result_graphic(result)
+#         print("Cycle size: ", instance.f(result))
+#         print("PRD: ", instance.PRD(opt, result))
+#     print("NEAREST NEIGHBOUR")
+#     result = instance.nearest_neighbour()
+#     print_result(result)
+#     if type(instance) is Euc2D:
+#         instance.result_graphic(result)
+#     print("Cycle size: ", instance.f(result))
+#     print("PRD: ", instance.PRD(opt, result))
+#     for value in m:
+#         print("2-OPT ", value)
+#         result = instance.twoOPT(value)
+#         print_result(result)
+#         if type(instance) is Euc2D:
+#             instance.result_graphic(result)
+#         print("Cycle size: ", instance.f(result))
+#         print("PRD: ", instance.PRD(opt, result))
 
-#test(Full(),"ftv47.atsp",[10,1000,100000],[10000,100],1776)
+
+# test(Full(),"ftv47.atsp",[10,1000,100000],[10000,100],1776)
 
 
 # full=Full()
@@ -487,7 +503,6 @@ def test(instance,data,k,m,opt):
 # print_result(fullRes)
 # print("Cycle size: ",full.f(fullRes))
 # print("PRD: ",full.PRD(1776,fullRes))
-
 
 
 # full=Euc2D()
@@ -542,5 +557,3 @@ def test(instance,data,k,m,opt):
 # print_result(fullRes)
 # print("Cycle size: ",full.f(fullRes))
 # print("PRD: ",full.PRD(6942,fullRes))
-
-
