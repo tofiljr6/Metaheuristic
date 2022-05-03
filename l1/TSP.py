@@ -1,3 +1,6 @@
+
+from operator import le
+import re
 import sys
 import os
 import psutil
@@ -9,6 +12,9 @@ import tsplib95
 from matplotlib import pyplot as plt
 from abc import ABC, abstractmethod
 from Charts import Charts
+from heapq import *
+import queue
+from collections import deque
 
 
 # wypisywanie cyklu
@@ -179,12 +185,16 @@ class Graph(ABC):
         else:
             solution = [i for i in range(len(self.matrix))]
             random.shuffle(solution)
-        best=self.f(solution)
+        best=self.f(solution) # wyznaczenie rozwiazania poczatkowego 
+
         iteration = 0
         iterationNoChange = 0
+        tabooList = MyStruct(tabuSize)
+
        # while iterationNoChange<stop:
         while iteration < stop:
             iteration+=1
+            N = []
             for _ in range(size):
                 while True:
                     s = random.randint(0, len(self.matrix) - 1)
@@ -193,6 +203,26 @@ class Graph(ABC):
                         break
                 if s > e:
                     s, e = e, s
+                N.append((s, e))
+
+            print("N: ", N)
+            print("Taboo: ", tabooList.queueToArray())
+
+            NwithoutTaboo = copy(N)
+            for t in tabooList.queueToArray():
+                while t in NwithoutTaboo:
+                    NwithoutTaboo.remove(t)
+            print("N' ", NwithoutTaboo)
+
+            if len(NwithoutTaboo) == 0:
+                # co robimy jak nie ma takiego?
+                return 
+
+            pi = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
+            tabooList.push((pi[0], pi[1]))
+            print("pi: ", pi)
+            print('\n')
+
             neighbour = neighbourhood(solution, s, e)
             new=self.f(neighbour)
             if new<best:
@@ -200,6 +230,32 @@ class Graph(ABC):
                 best=new
         return solution
 
+
+class MyStruct():
+    def __init__(self, size):
+        self.q = queue.Queue()
+        self.size = size
+        self.ln = 0;
+    
+    def push(self, element):
+        if (self.ln < self.size):
+            self.q.put(element)
+            self.ln += 1
+        else:
+            self.q.get()
+            self.q.put(element)
+
+    def pop(self):
+        self.ln -= 1
+        return self.q.get()
+
+    def queueToArray(self):
+        l = list(self.q.queue)
+        lfinal = list()
+        for i in l:
+            lfinal.append((i[0], i[1]))
+        return lfinal
+        # return list(self.q.queue)
 
 class Full(Graph):
     def load(self, filename):
@@ -217,8 +273,6 @@ class Full(Graph):
         for i in range(size):
             for j in range(size):
                 self.matrix[i][j] = random.randint(0, 1000)
-
-
 
 
 class Lower(Graph):
@@ -442,8 +496,8 @@ def PRDStats(graph):
     chart.plot()
 
 full = Full()
-full.random(10)
-print_result(full.tabuSearch(full.twoOPT, 100, invert, 100, 10, 10000))
+full.random(5)
+print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 5, 10))
 
 
 # def test(instance,data,k,m,opt):
