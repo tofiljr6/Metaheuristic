@@ -217,7 +217,7 @@ class Graph(ABC):
             pi = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
             tabooList.push((pi[0], pi[1]))
         
-            neighbour = neighbourhood(solution, s, e)
+            neighbour = neighbourhood(solution, pi[0], pi[1])
             new=self.f(neighbour)
             if new<best:
                 solution=neighbour
