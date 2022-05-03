@@ -205,14 +205,10 @@ class Graph(ABC):
                     s, e = e, s
                 N.append((s, e))
 
-            print("N: ", N)
-            print("Taboo: ", tabooList.queueToArray())
-
             NwithoutTaboo = copy(N)
             for t in tabooList.queueToArray():
                 while t in NwithoutTaboo:
                     NwithoutTaboo.remove(t)
-            print("N' ", NwithoutTaboo)
 
             if len(NwithoutTaboo) == 0:
                 # co robimy jak nie ma takiego?
@@ -220,9 +216,7 @@ class Graph(ABC):
 
             pi = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
             tabooList.push((pi[0], pi[1]))
-            print("pi: ", pi)
-            print('\n')
-
+        
             neighbour = neighbourhood(solution, s, e)
             new=self.f(neighbour)
             if new<best:
