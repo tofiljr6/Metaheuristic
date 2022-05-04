@@ -216,12 +216,14 @@ class Graph(ABC):
 
             pi = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
             tabooList.push((pi[0], pi[1]))
-        
+    
             neighbour = neighbourhood(solution, pi[0], pi[1])
             new=self.f(neighbour)
             if new<best:
                 solution=neighbour
                 best=new
+            else:
+                iterationNoChange += 1
         return solution
 
 
@@ -250,6 +252,16 @@ class MyStruct():
             lfinal.append((i[0], i[1]))
         return lfinal
         # return list(self.q.queue)
+
+# m = MyStruct(5)
+# m.push((1, 0))
+# m.push((2, 0))
+# m.push((3, 0))
+# m.push((4, 0))
+# m.push((5, 0))
+# print(m.queueToArray())
+# m.push((6, 0))
+# print(m.queueToArray())
 
 class Full(Graph):
     def load(self, filename):
@@ -491,6 +503,7 @@ def PRDStats(graph):
 
 full = Full()
 full.random(5)
+full.print_instance()
 print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 5, 10))
 
 
