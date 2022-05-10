@@ -1,4 +1,3 @@
-
 from operator import le
 import re
 import sys
@@ -178,6 +177,7 @@ class Graph(ABC):
     # rozmiar listy tabu
     # warunek stopu
     def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000, decision="1"):
+        # wyznaczenie rozwiazania poczatkowego
         if callable(start):
             solution = start(arg)
         elif type(start) == list:
@@ -185,44 +185,54 @@ class Graph(ABC):
         else:
             solution = [i for i in range(len(self.matrix))]
             random.shuffle(solution)
-        best=self.f(solution) # wyznaczenie rozwiazania poczatkowego 
+        best = self.f(solution)
 
+        # rozne warunki zakonczenie
         iteration = 0
         iterationNoChange = 0
-        tabooList = MyStruct(tabuSize)
+        startTime = time.time()
 
-       # while iterationNoChange<stop:
+        tabooList = MyStruct(tabuSize)
+        aspirationList = MyStruct(tabuSize)
+
+        # while time.time()-startTime<stop:
+        # while iterationNoChange<stop:
         while iteration < stop:
-            iteration+=1
+            iteration += 1
+            # generowanie sasiedztwa
             N = []
             for _ in range(size):
                 while True:
                     s = random.randint(0, len(self.matrix) - 1)
                     e = random.randint(0, len(self.matrix) - 1)
-                    if s!=e:
+                    if s != e:
                         break
                 if s > e:
                     s, e = e, s
                 N.append((s, e))
 
+            # wybor najleszpego rozwiazania do kryterium asperacji
+            bestTaboo = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
+
+            # usuwania zabronionych sasiadow
             NwithoutTaboo = copy(N)
             for t in tabooList.queueToArray():
                 while t in NwithoutTaboo:
                     NwithoutTaboo.remove(t)
 
+            # co jesli wszystskie rozwiazania sa zabronione
             if len(NwithoutTaboo) == 0:
-                print("wszedl")
                 match decision:
-                    case "1": 
+                    # konczymy algorytm
+                    case "1":
                         return solution
+                    # usuwamy zabrobione rozwiazania dopoki jakies bedzie legalne
                     case "2":
                         NwithoutTabooPrim = copy(N)
                         tabooListPrim = copy(tabooList.queueToArray())
-                        print(tabooListPrim, NwithoutTabooPrim)
 
                         while True:
                             tabooListPrim.pop()
-                            print(tabooListPrim, NwithoutTabooPrim)
                             for t in tabooListPrim:
                                 while t in NwithoutTabooPrim:
                                     NwithoutTabooPrim.remove(t)
@@ -231,24 +241,43 @@ class Graph(ABC):
                             if len(tabooListPrim) == 0:
                                 break
                         NwithoutTaboo = NwithoutTabooPrim
+                    # zaczynamy algorytm z innym rozwiazaniem poczatkowym
                     case "3":
                         self.tabuSearch(start, arg, neighbourhood, size, tabuSize, stop, decision)
+                    # robimy nawrot do aspirujacego rozwiazania
                     case "4":
-                        pass
+                        asp = aspirationList.pop()
+                        solution = asp[0]
+                        best = self.f(neighbourhood(solution, asp[1], asp[2]))
+                    # generujemy nowych sasiadow dopiki nie beda zabronieni
                     case "5":
-                        pass
+                        while True:
+                            while True:
+                                s = random.randint(0, len(self.matrix) - 1)
+                                e = random.randint(0, len(self.matrix) - 1)
+                                if s != e:
+                                    break
+                            if s > e:
+                                s, e = e, s
+
+                            if not (s,e) in tabooList.queueToArray():
+                                NwithoutTaboo.append((s,e))
+                                break
                     case _:
                         return solution
-                return 
 
+            # wybor najlepszego rozwiazania
             pi = min(NwithoutTaboo, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
             tabooList.push((pi[0], pi[1]))
-    
             neighbour = neighbourhood(solution, pi[0], pi[1])
-            new=self.f(neighbour)
-            if new<best:
-                solution=neighbour
-                best=new
+            new = self.f(neighbour)
+            # sprawdzenie czy najlepsze rozwiazanie jest gorsze niz to ktore bylo najlepsze przed usunieciem
+            # jesli tak dodajemy jako kryterium aspiracji
+            if new > self.f(neighbourhood(solution, bestTaboo[0], bestTaboo[1])):
+                aspirationList.push((solution, bestTaboo[0], bestTaboo[1]))
+            if new < best:
+                solution = neighbour
+                best = new
             else:
                 iterationNoChange += 1
         return solution
@@ -259,7 +288,7 @@ class MyStruct():
         self.q = queue.Queue()
         self.size = size
         self.ln = 0;
-    
+
     def push(self, element):
         if (self.ln < self.size):
             self.q.put(element)
@@ -279,6 +308,7 @@ class MyStruct():
             lfinal.append((i[0], i[1]))
         return lfinal
         # return list(self.q.queue)
+
 
 # m = MyStruct(5)
 # m.push((1, 0))
@@ -528,11 +558,11 @@ def PRDStats(graph):
     chart.load(sizes, scores_opt, "blue", "2-opt")
     chart.plot()
 
+
 full = Full()
 full.random(5)
 # full.print_instance()
 print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 20, 10, "2"))
-
 
 # def test(instance,data,k,m,opt):
 #     if type(data) is int:
