@@ -228,17 +228,15 @@ class Graph(ABC):
                         return solution
                     # usuwamy zabrobione rozwiazania dopoki jakies bedzie legalne
                     case "2":
-                        NwithoutTabooPrim = copy(N)
                         tabooListPrim = copy(tabooList.queueToArray())
 
                         while True:
+                            NwithoutTabooPrim = copy(N)
                             tabooListPrim.pop()
                             for t in tabooListPrim:
                                 while t in NwithoutTabooPrim:
                                     NwithoutTabooPrim.remove(t)
                             if len(NwithoutTabooPrim) != 0:
-                                break
-                            if len(tabooListPrim) == 0:
                                 break
                         NwithoutTaboo = NwithoutTabooPrim
                     # zaczynamy algorytm z innym rozwiazaniem poczatkowym
@@ -267,19 +265,20 @@ class Graph(ABC):
                         return solution
 
             # wybor najlepszego rozwiazania
-            pi = min(NwithoutTaboo, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
-            tabooList.push((pi[0], pi[1]))
-            neighbour = neighbourhood(solution, pi[0], pi[1])
-            new = self.f(neighbour)
-            # sprawdzenie czy najlepsze rozwiazanie jest gorsze niz to ktore bylo najlepsze przed usunieciem
-            # jesli tak dodajemy jako kryterium aspiracji
-            if new > self.f(neighbourhood(solution, bestTaboo[0], bestTaboo[1])):
-                aspirationList.push((solution, bestTaboo[0], bestTaboo[1]))
-            if new < best:
-                solution = neighbour
-                best = new
-            else:
-                iterationNoChange += 1
+            if len(NwithoutTaboo)>0:
+                pi = min(NwithoutTaboo, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
+                tabooList.push((pi[0], pi[1]))
+                neighbour = neighbourhood(solution, pi[0], pi[1])
+                new = self.f(neighbour)
+                # sprawdzenie czy najlepsze rozwiazanie jest gorsze niz to ktore bylo najlepsze przed usunieciem
+                # jesli tak dodajemy jako kryterium aspiracji
+                if new > self.f(neighbourhood(solution, bestTaboo[0], bestTaboo[1])):
+                    aspirationList.push((solution, bestTaboo[0], bestTaboo[1]))
+                if new < best:
+                    solution = neighbour
+                    best = new
+                else:
+                    iterationNoChange += 1
         return solution
 
 
@@ -562,7 +561,7 @@ def PRDStats(graph):
 full = Full()
 full.random(5)
 # full.print_instance()
-print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 20, 10, "2"))
+print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 20, 10, "4"))
 
 # def test(instance,data,k,m,opt):
 #     if type(data) is int:
