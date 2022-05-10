@@ -177,7 +177,7 @@ class Graph(ABC):
     # funkcja ktora generuje sasiedztwo wraz z jego rozmiarem,
     # rozmiar listy tabu
     # warunek stopu
-    def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000):
+    def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000, decision="1"):
         if callable(start):
             solution = start(arg)
         elif type(start) == list:
@@ -211,10 +211,37 @@ class Graph(ABC):
                     NwithoutTaboo.remove(t)
 
             if len(NwithoutTaboo) == 0:
-                # co robimy jak nie ma takiego?
+                print("wszedl")
+                match decision:
+                    case "1": 
+                        return solution
+                    case "2":
+                        NwithoutTabooPrim = copy(N)
+                        tabooListPrim = copy(tabooList.queueToArray())
+                        print(tabooListPrim, NwithoutTabooPrim)
+
+                        while True:
+                            tabooListPrim.pop()
+                            print(tabooListPrim, NwithoutTabooPrim)
+                            for t in tabooListPrim:
+                                while t in NwithoutTabooPrim:
+                                    NwithoutTabooPrim.remove(t)
+                            if len(NwithoutTabooPrim) != 0:
+                                break
+                            if len(tabooListPrim) == 0:
+                                break
+                        NwithoutTaboo = NwithoutTabooPrim
+                    case "3":
+                        self.tabuSearch(start, arg, neighbourhood, size, tabuSize, stop, decision)
+                    case "4":
+                        pass
+                    case "5":
+                        pass
+                    case _:
+                        return solution
                 return 
 
-            pi = min(N, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
+            pi = min(NwithoutTaboo, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
             tabooList.push((pi[0], pi[1]))
     
             neighbour = neighbourhood(solution, pi[0], pi[1])
@@ -503,8 +530,8 @@ def PRDStats(graph):
 
 full = Full()
 full.random(5)
-full.print_instance()
-print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 5, 10))
+# full.print_instance()
+print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 20, 10, "2"))
 
 
 # def test(instance,data,k,m,opt):
