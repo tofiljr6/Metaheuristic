@@ -2,11 +2,13 @@ from operator import le
 import re
 import sys
 import os
+from turtle import color
 import psutil
 import time
 from copy import copy, deepcopy
 import random
 from math import sqrt
+from pyparsing import col
 import tsplib95
 from matplotlib import pyplot as plt
 from abc import ABC, abstractmethod
@@ -239,6 +241,7 @@ class Graph(ABC):
                             if len(NwithoutTabooPrim) != 0:
                                 break
                         NwithoutTaboo = NwithoutTabooPrim
+                        tabooList = tabooListPrim
                     # zaczynamy algorytm z innym rozwiazaniem poczatkowym
                     case "3":
                         self.tabuSearch(start, arg, neighbourhood, size, tabuSize, stop, decision)
@@ -558,10 +561,66 @@ def PRDStats(graph):
     chart.plot()
 
 
-full = Full()
-full.random(5)
+# full = Full()
+# full.random(5)
+# # full.print_instance()
+# # def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000, decision="1"):
 # full.print_instance()
-print_result(full.tabuSearch(full.twoOPT, 5, invert, 5, 20, 10, "4"))
+# startingArray = [i for i in range(5)]
+# random.shuffle(startingArray)
+# print(startingArray)
+# print_result(full.tabuSearch(copy(startingArray), 5, invert, 5, 10, 10, "4"))
+# print(startingArray)
+# print_result(full.tabuSearch(copy(startingArray), 5, swap,   5, 10, 10, "4"))
+# print(startingArray)
+# print_result(full.tabuSearch(copy(startingArray), 5, insert, 5, 10, 10, "4"))
+
+
+
+def compareIIS():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    invertResults = []
+    insertResults = []
+    swapResults = []
+    
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+        start = time.time()
+        full.tabuSearch(copy(startingArray), 5, invert, 5, 10, 10, "4")
+        end = time.time()
+        print(end - start)
+        invertResults.append(end - start)
+
+        start = time.time()
+        full.tabuSearch(copy(startingArray), 5, insert, 5, 10, 10, "4")
+        end = time.time()
+        print(end - start)
+        insertResults.append(end - start)
+
+        start = time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "4")
+        end = time.time()
+        print(end - start)
+        swapResults.append(end - start)
+
+    print(invertResults)
+    print(insertResults)
+    print(swapResults)
+
+    chart = Charts("Porównanie invert'a, insert'a oraz swap'a"," rozmiar instancji", "czas")
+    chart.load(instanceSize, invertResults, "red", "invert")
+    chart.load(instanceSize, insertResults, "green", "insert")
+    chart.load(instanceSize, swapResults, "blue", "swap")
+    chart.plot()
+
+compareIIS()
+
+
+
 
 # def test(instance,data,k,m,opt):
 #     if type(data) is int:
