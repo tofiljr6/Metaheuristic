@@ -617,9 +617,54 @@ def compareIIS():
     chart.load(instanceSize, swapResults, "blue", "swap")
     chart.plot()
 
-compareIIS()
+# compareIIS()
 
+def compareSizeOfTabuList():
+    # metoda sprawdzająca jak zmienia się złożoność czasowa od rozmaiaru tablicy tab'u
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    timeWithSmallSize = []
+    timeWithMediumSize = []
+    timeWithBigSize = []
 
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "4")
+        # print("S:", s)
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        timeWithSmallSize.append(full.f(s) / (end-start))
+    
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 15, 10, 10, "4")
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        timeWithMediumSize.append(full.f(s) / (end-start))
+
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 30, 10, 10, "4")
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        timeWithBigSize.append(full.f(s) / (end-start))
+
+    print(timeWithSmallSize)
+    print(timeWithMediumSize)
+    print(timeWithBigSize)
+
+    chart = Charts("Porównanie na rozmiar tablicy taby"," rozmiar instancji", "czas/f(koszt)")
+    chart.load(instanceSize, timeWithSmallSize, "red", "tabuSize: 5")
+    chart.load(instanceSize, timeWithMediumSize, "green", "tabuSize: 15")
+    chart.load(instanceSize, timeWithBigSize, "blue", "tabuSize: 30")
+    chart.plot()
+
+compareSizeOfTabuList()
 
 
 # def test(instance,data,k,m,opt):
