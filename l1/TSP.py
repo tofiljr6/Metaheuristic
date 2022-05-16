@@ -619,6 +619,42 @@ def compareIIS():
 
 # compareIIS()
 
+def compareIISres():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    invertResults = []
+    insertResults = []
+    swapResults = []
+    
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+        s=full.tabuSearch(copy(startingArray), 5, invert, 5, 10, 10, "4")
+        print(full.f(s))
+        invertResults.append(full.f(s))
+
+        s=full.tabuSearch(copy(startingArray), 5, insert, 5, 10, 10, "4")
+        print(full.f(s))
+        insertResults.append(full.f(s))
+
+        s=full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "4")
+        print(full.f(s))
+        swapResults.append(full.f(s))
+
+    print(invertResults)
+    print(insertResults)
+    print(swapResults)
+
+    chart = Charts("Porównanie invert'a, insert'a oraz swap'a"," rozmiar instancji", "f")
+    chart.load(instanceSize, invertResults, "red", "invert")
+    chart.load(instanceSize, insertResults, "green", "insert")
+    chart.load(instanceSize, swapResults, "blue", "swap")
+    chart.plot()
+
+#compareIISres()
+
 def compareSizeOfTabuList():
     # metoda sprawdzająca jak zmienia się złożoność czasowa od rozmaiaru tablicy tab'u
     full = Full()
@@ -664,7 +700,158 @@ def compareSizeOfTabuList():
     chart.load(instanceSize, timeWithBigSize, "blue", "tabuSize: 30")
     chart.plot()
 
-compareSizeOfTabuList()
+#compareSizeOfTabuList()
+
+def compareNoMovesOptionsresult():
+    # metoda sprawdzająca jak zmienia się f celu w zależności od wyboru przy braku rozwiązań
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    opt1 = []
+    opt2 = []
+    opt3 = []
+    opt4 = []
+    opt5 = []
+
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+
+        s = full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "1")
+        print(full.f(s))
+        opt1.append(full.f(s))
+    
+        s = full.tabuSearch(copy(startingArray), 5, swap, 15, 10, 10, "2")
+        print(full.f(s))
+        opt2.append(full.f(s))
+
+
+        s = full.tabuSearch(copy(startingArray), 5, swap, 30, 10, 10, "3")
+        print(full.f(s))
+        opt3.append(full.f(s))
+
+        
+        s = full.tabuSearch(copy(startingArray), 5, swap, 30, 10, 10, "4")
+        print(full.f(s))
+        opt4.append(full.f(s))
+
+        
+        s = full.tabuSearch(copy(startingArray), 5, swap, 30, 10, 10, "5")
+        print(full.f(s))
+        opt5.append(full.f(s))
+
+    print(opt1)
+    print(opt2)
+    print(opt3)
+
+    chart = Charts("Porównanie na wybór przy braku rozwiązania"," rozmiar instancji", "f(koszt)")
+    chart.load(instanceSize, opt1, "red", "1")
+    chart.load(instanceSize, opt2, "green", "2")
+    chart.load(instanceSize,opt3, "blue", "3")
+    chart.load(instanceSize,opt4, "yellow", "4")
+    chart.load(instanceSize,opt5, "magenta", "5")
+    chart.plot()
+
+#compareNoMovesOptionsresult()
+
+def compareNoMovesOptions():
+    # metoda sprawdzająca jak zmienia się czas w zależności od wyboru przy braku rozwiązań
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    opt1 = []
+    opt2 = []
+    opt3 = []
+    opt4 = []
+    opt5 = []
+
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+
+        start=time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "1")
+        end=time.time()
+        print(end-start)
+        opt1.append(end-start)
+    
+        start=time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "2")
+        end=time.time()
+        print(end-start)
+        opt2.append(end-start)
+
+
+        start=time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "3")
+        end=time.time()
+        print(end-start)
+        opt3.append(end-start)
+        
+        start=time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "4")
+        end=time.time()
+        print(end-start)
+        opt4.append(end-start)
+
+        
+        start=time.time()
+        full.tabuSearch(copy(startingArray), 5, swap, 5, 10, 10, "5")
+        end=time.time()
+        print(end-start)
+        opt5.append(end-start)
+
+    print(opt1)
+    print(opt2)
+    print(opt3)
+
+    chart = Charts("Porównanie na wybór przy braku rozwiązania"," rozmiar instancji", "czas")
+    chart.load(instanceSize, opt1, "red", "1")
+    chart.load(instanceSize, opt2, "green", "2")
+    chart.load(instanceSize,opt3, "blue", "3")
+    chart.load(instanceSize,opt4, "yellow", "4")
+    chart.load(instanceSize,opt5, "magenta", "5")
+    chart.plot()
+
+#compareNoMovesOptions()
+
+def compareSTOP():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    instanceSize = [5, 10,15, 20,25, 30, 35]
+    iterations = []
+    iterationsNoChange = []
+    time = []
+    
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+
+        s=full.tabuSearch(copy(startingArray), 5, invert, 5, 10, 10, "1")
+        print(full.f(s))
+        iterations.append(full.f(s))
+
+        s=full.tabuSearch1(copy(startingArray), 5, insert, 5, 10, 10, "1")
+        print(full.f(s))
+        iterationsNoChange.append(full.f(s))
+
+        s=full.tabuSearch2(copy(startingArray), 5, swap, 5, 10, 10, "1")
+        print(full.f(s))
+        time.append(full.f(s))
+
+    print(iterations)
+    print(iterationsNoChange)
+    print(time)
+
+    chart = Charts("Porównanie warunku stopu"," rozmiar instancji", "f")
+    chart.load(instanceSize, iterations, "red", "ilość iteracji")
+    chart.load(instanceSize, iterationsNoChange, "green", "ilość iteracji bez zmiany")
+    chart.load(instanceSize, time, "blue", "czas")
+    chart.plot()
+
+
+
 
 
 # def test(instance,data,k,m,opt):

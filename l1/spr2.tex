@@ -22,6 +22,27 @@
     Celem tej listy było zapoznanie się z algorytmem przeszukiwania z
     zabronieniami (z ang. Tabu search). 
 
+    \section{Opis algortmu}
+
+   Zaimplementowany algorytm jest mocno generyczny, mamy wiele opcji do wyboru.
+   Na początku decydujemy, czy podajemy rozwiązanie początkowe 
+   (lub np. funkcję heurystyczną, które takie wygeneruje), czy jest 
+   ono losowe. Są także 3 możliwe warunki zakończenie: 
+   liczba iteracji, liczba iteracji bez zmiany, czas.
+   Algorytm w pętli generuje sąsiedztwo aktualnego rozwiązania
+   (także są 3: swap, insert, invert). Następnie usuwa te rozwiązania,
+   które są na liście tabu (jej długość także jest parametrem) i wybiera
+   najlepsze z pozostałych. Oczywiście może zdarzyć się sytuacja, w której
+   wszystkie rozwiązania są zabrobione. Wtedy mamy 5 opcji: 
+   1) zakończenie algorytmu z aktualnym rozwiązaniem
+   2) usuwanie rozwiązań z listy tabu dopóki jakieś będzie dozwolone
+   3) powtórzenie algorytmu z innym roziwązaniem początkowym
+   4) skorzystanie z kryterium aspiracji (pamięci długoterminowej), tzn.
+   z zapamiętanego wcześniej rozwiązania, które było najlepsze, ale było zabronione,
+   algorytm wykonuje nawrót
+   5) generowanie nowych sąsiadów dopóki któryś będzie dozwolony
+    
+
     \noindent Język programowania: Python 3.10
 
     \section{Porównanie otoczeń: insert, invert, swap}
