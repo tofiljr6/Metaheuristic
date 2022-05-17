@@ -667,6 +667,9 @@ def compareSizeOfTabuList():
     timeWithSmallSize = []
     timeWithMediumSize = []
     timeWithBigSize = []
+    timeWith4Size = []
+    timeWith6Size = []
+    timeWith7Size = []
 
     for currentInstatnceSize in instanceSize:
         full.random(currentInstatnceSize)
@@ -679,13 +682,47 @@ def compareSizeOfTabuList():
         print(full.f(s))
         end = time.time()
         print(end - start)
+        # timeWithSmallSize.append(full.f(s))
+        # timeWithSmallSize.append((end-start))
         timeWithSmallSize.append(full.f(s) / (end-start))
+
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 4, 10, 10, "4")
+        # print("S:", s)
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        # timeWith4Size.append(full.f(s))
+        # timeWith4Size.append((end-start))
+        timeWith4Size.append(full.f(s) / (end-start))
+
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 6, 10, 10, "4")
+        # print("S:", s)
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        # timeWith6Size.append(full.f(s))
+        # timeWith6Size.append((end-start))
+        timeWith6Size.append(full.f(s) / (end-start))
+
+        start = time.time()
+        s = full.tabuSearch(copy(startingArray), 5, swap, 7, 10, 10, "4")
+        # print("S:", s)
+        print(full.f(s))
+        end = time.time()
+        print(end - start)
+        # timeWith7Size.append(full.f(s))
+        # timeWith7Size.append((end-start))
+        timeWith7Size.append(full.f(s) / (end-start))
     
         start = time.time()
         s = full.tabuSearch(copy(startingArray), 5, swap, 15, 10, 10, "4")
         print(full.f(s))
         end = time.time()
         print(end - start)
+        # timeWithMediumSize.append(full.f(s))
+        # timeWithMediumSize.append((end-start))
         timeWithMediumSize.append(full.f(s) / (end-start))
 
         start = time.time()
@@ -693,6 +730,8 @@ def compareSizeOfTabuList():
         print(full.f(s))
         end = time.time()
         print(end - start)
+        # timeWithBigSize.append(full.f(s))
+        # timeWithBigSize.append((end-start))
         timeWithBigSize.append(full.f(s) / (end-start))
 
     print(timeWithSmallSize)
@@ -700,12 +739,15 @@ def compareSizeOfTabuList():
     print(timeWithBigSize)
 
     chart = Charts("Porównanie na rozmiar tablicy taby"," rozmiar instancji", "czas/f(koszt)")
+    chart.load(instanceSize, timeWith4Size, "yellow", "tabuSize: 4")
     chart.load(instanceSize, timeWithSmallSize, "red", "tabuSize: 5")
+    chart.load(instanceSize, timeWith6Size, "magenta", "tabuSize: 6")
+    chart.load(instanceSize, timeWith7Size, "black", "tabuSize: 7")
     chart.load(instanceSize, timeWithMediumSize, "green", "tabuSize: 15")
     chart.load(instanceSize, timeWithBigSize, "blue", "tabuSize: 30")
     chart.plot()
 
-#compareSizeOfTabuList()
+compareSizeOfTabuList()
 
 def compareNoMovesOptionsresult():
     # metoda sprawdzająca jak zmienia się f celu w zależności od wyboru przy braku rozwiązań
@@ -926,7 +968,7 @@ def timeComplexity():
     # chart.load(instanceSize, x2, "blue", "O(x^2)")
     chart.plot()
 
-timeComplexity()
+# timeComplexity()
 
 
 # def test(instance,data,k,m,opt):
