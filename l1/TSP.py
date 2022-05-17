@@ -241,7 +241,12 @@ class Graph(ABC):
                             if len(NwithoutTabooPrim) != 0:
                                 break
                         NwithoutTaboo = NwithoutTabooPrim
-                        tabooList = tabooListPrim
+                        # tabooList = tabooListPrim # type - mish mash
+                        tabooListStructPrim = MyStruct(tabuSize)
+                        for element in tabooListPrim:
+                            tabooListStructPrim.push(element)
+                        tabooList = tabooListStructPrim
+
                     # zaczynamy algorytm z innym rozwiazaniem poczatkowym
                     case "3":
                         self.tabuSearch(start, arg, neighbourhood, size, tabuSize, stop, decision)
@@ -752,7 +757,7 @@ def compareNoMovesOptionsresult():
     chart.load(instanceSize,opt5, "magenta", "5")
     chart.plot()
 
-#compareNoMovesOptionsresult()
+# compareNoMovesOptionsresult()
 
 def compareNoMovesOptions():
     # metoda sprawdzająca jak zmienia się czas w zależności od wyboru przy braku rozwiązań
@@ -813,7 +818,7 @@ def compareNoMovesOptions():
     chart.load(instanceSize,opt5, "magenta", "5")
     chart.plot()
 
-#compareNoMovesOptions()
+# compareNoMovesOptions()
 
 def compareSTOP():
     # medota porównująca co jest lepsze: invert insert czy swap?
@@ -850,8 +855,78 @@ def compareSTOP():
     chart.load(instanceSize, time, "blue", "czas")
     chart.plot()
 
+def compareSTOP2():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    instanceSize = [5, 10, 15 ,20, 25 ] #, 30 ] #, 35]
+    iterations = []
+    iterationsNoChange = []
+    timeArray = []
+    
+    for currentInstatnceSize in instanceSize:
+        print(currentInstatnceSize)
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+        
+        start = time.time()
+        s=full.tabuSearch(copy(startingArray), 5, invert, 5, 10, 10, "1")
+        end = time.time()
+        print(full.f(s))
+        iterations.append(full.f(s) / (end - start))
+
+        start = time.time()
+        s=full.tabuSearch1(copy(startingArray), 5, insert, 5, 10, 10, "1")
+        end = time.time()
+        print(full.f(s))
+        iterationsNoChange.append(full.f(s) / (end - start))
+        
+        start = time.time()
+        s=full.tabuSearch2(copy(startingArray), 5, swap, 5, 10, 100, "1")
+        end = time.time()
+        print(full.f(s))
+        timeArray.append(full.f(s) / (end - start))
+
+    print(iterations)
+    print(iterationsNoChange)
+    print(timeArray)
+
+    chart = Charts("Porównanie warunku stopu"," rozmiar instancji", "f")
+    chart.load(instanceSize, iterations, "red", "ilość iteracji")
+    chart.load(instanceSize, iterationsNoChange, "green", "ilość iteracji bez zmiany")
+    chart.load(instanceSize, timeArray, "blue", "czas")
+    chart.plot()
+
+def timeComplexity():
+    full = Full()
+    instanceSize = [5, 10, 15 ,20, 25 ]
+    timeComp = []
+    # x2 = []
+
+    for currentInstatnceSize in instanceSize:
+        print(currentInstatnceSize)
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+
+        start = time.time()
+        # def tabuSearch(self, start, arg, neighbourhood, size=100, tabuSize=10, stop=10000, decision="1"):
+        s=full.tabuSearch(copy(startingArray), 10, swap, 20, 40, 20, "2")
+        end = time.time()
+        # print(full.f(s))
+        timeComp.append(end - start)
 
 
+        # x2.append(currentInstatnceSize ** 2 / 80000)
+
+
+
+    chart = Charts("time complexity"," rozmiar instancji", "time")
+    chart.load(instanceSize, timeComp, "red", "czas")
+    # chart.load(instanceSize, x2, "blue", "O(x^2)")
+    chart.plot()
+
+timeComplexity()
 
 
 # def test(instance,data,k,m,opt):
