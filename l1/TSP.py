@@ -584,7 +584,8 @@ def PRDStats(graph):
 
 def compareIIS():
     # medota porównująca co jest lepsze: invert insert czy swap?
-    full = Full()
+    # full = Full()
+    full = Euc2D()
     instanceSize = [5, 10,15, 20,25, 30, 35]
     invertResults = []
     insertResults = []
@@ -626,7 +627,8 @@ def compareIIS():
 
 def compareIISres():
     # medota porównująca co jest lepsze: invert insert czy swap?
-    full = Full()
+    # full = Full()
+    full = Euc2D()
     instanceSize = [5, 10,15, 20,25, 30, 35]
     invertResults = []
     insertResults = []
@@ -658,11 +660,12 @@ def compareIISres():
     chart.load(instanceSize, swapResults, "blue", "swap")
     chart.plot()
 
-#compareIISres()
+# compareIISres()
 
 def compareSizeOfTabuList():
     # metoda sprawdzająca jak zmienia się złożoność czasowa od rozmaiaru tablicy tab'u
-    full = Full()
+    # full = Full()
+    full = Euc2D()
     instanceSize = [5, 10,15, 20,25, 30, 35]
     timeWithSmallSize = []
     timeWithMediumSize = []
