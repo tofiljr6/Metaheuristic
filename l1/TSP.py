@@ -86,6 +86,7 @@ class Graph(ABC):
         if type(best_result) == int:
             f_res = self.f(result)
             f_best = best_result
+            print(f_res, f_best)
             return ((f_res - f_best) / f_best) * 100
         elif type(best_result) == list:
             f_res = self.f(result)
@@ -198,8 +199,8 @@ class Graph(ABC):
         aspirationList = MyStruct(tabuSize)
 
         # while time.time()-startTime<stop:
-        # while iterationNoChange<stop:
-        while iteration < stop:
+        while iterationNoChange<stop:
+        # while iteration < stop:
             iteration += 1
             # generowanie sasiedztwa
             N = []
@@ -282,11 +283,17 @@ class Graph(ABC):
                 # jesli tak dodajemy jako kryterium aspiracji
                 if new > self.f(neighbourhood(solution, bestTaboo[0], bestTaboo[1])):
                     aspirationList.push((solution, bestTaboo[0], bestTaboo[1]))
+                    
                 if new < best:
+                    # f_res = self.f(neighbour)
+                    f_best = 6942
+                    print(iteration, new, end=" ") # self.PRD(39, solution))
+                    print(((new - f_best) / f_best) * 100)
                     solution = neighbour
                     best = new
                 else:
                     iterationNoChange += 1
+                
         return solution
 
 
@@ -750,7 +757,7 @@ def compareSizeOfTabuList():
     chart.load(instanceSize, timeWithBigSize, "blue", "tabuSize: 30")
     chart.plot()
 
-compareSizeOfTabuList()
+# compareSizeOfTabuList()
 
 def compareNoMovesOptionsresult():
     # metoda sprawdzająca jak zmienia się f celu w zależności od wyboru przy braku rozwiązań
@@ -972,6 +979,26 @@ def timeComplexity():
     chart.plot()
 
 # timeComplexity()
+
+
+
+instace = Lower()
+instace.load("gr120.tsp")
+s = instace.tabuSearch(copy(instace.krandom),1, swap, 750, 15, 3000, "5")
+# s = instace.tabuSearch(copy(instace.krandom),10, swap, 21, 7, 10000, "2")
+print_result(s)
+
+d = copy(instace.nearest_neighbour(100))
+print(instace.PRD(6942, d))
+
+
+
+
+
+
+
+
+
 
 
 # def test(instance,data,k,m,opt):
