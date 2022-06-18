@@ -297,7 +297,7 @@ class Graph(ABC):
                 
         return solution
 
-    def generic(self, listOfDecision, numberOfIndividuals):
+    def generic(self, listOfDecision, numberOfIndividuals, maxGeneration):
         individuals_list = list()
 
         # step 1: wygenerowanie populacji początkowej
@@ -312,55 +312,79 @@ class Graph(ABC):
             case _:
                 return "error"
 
+        for i in individuals_list:
+            print(i.genotyp, i.fenotyp)
 
         # while pokolenie
+        while maxGeneration > 0:
         
-        parent1 = None
-        parent2 = None
-        # step 2: selekcja 
-        match listOfDecision[1]:
-            case 1: # losowa - każdy osobnik ma równe szanse bycia wybranym
-                print("case 1")
-                while True:
-                    parent1index = random.randint(0, len(individuals_list)-1)
-                    parent2index = random.randint(0, len(individuals_list)-1)
+            parent1 = None
+            parent2 = None
+            # step 2: selekcja 
+            match listOfDecision[1]:
+                case 1: # losowa - każdy osobnik ma równe szanse bycia wybranym
+                    print("case 1")
+                    while True:
+                        parent1index = random.randint(0, len(individuals_list)-1)
+                        parent2index = random.randint(0, len(individuals_list)-1)
 
-                    if parent1index != parent2index:
-                        break
-                parent1 = individuals_list[parent1index]
-                parent2 = individuals_list[parent2index]
-            case 2: # ruletka
+                        if parent1index != parent2index:
+                            break
+                    parent1 = individuals_list[parent1index]
+                    parent2 = individuals_list[parent2index]
+                case 2: # ruletka
+                    pass
+                case 3: # turniej
+                    pass
+                case _:
+                    return "error"
+
+
+            # step 3: krzyżowanie
+            match listOfDecision[2]:
+                case 1: # Half Crossover, HX
+                    onepointcut = random.randint(0, len(self.matrix))
+                    print(onepointcut)
+                    # child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
+                    # child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
+                    child1 = parent1.genotyp[:onepointcut] + missingNumber(parent1.genotyp[:onepointcut], len(parent1.genotyp))
+                    child2 = parent2.genotyp[:onepointcut] + missingNumber(parent2.genotyp[:onepointcut], len(parent2.genotyp))
+
+                    print(parent1.genotyp)
+                    print(parent2.genotyp)
+                    print(child1)
+                    print(child2)
+
+                    individuals_list.remove(parent1)
+                    individuals_list.remove(parent2)
+                    individuals_list.append(Individual(child1, self.f(child1)))
+                    individuals_list.append(Individual(child2, self.f(child2)))
+
+                case 1: # Order Crossover, OX
+                    pass
+                case 1: # Partially Mapped Crossover PMX
+                    pass
+                case _:
+                    return "error"
+
+            # step 4
+            if random.random() < listOfDecision[3]:
+                # mutuj
                 pass
-            case 3: # turniej
-                pass
-            case _:
-                return "error"
 
 
-        # step 3: krzyżowanie
-        match listOfDecision[2]:
-            case 1: # Half Crossover, HX
-                onepointcut = random.randint(0, len(self.matrix))
-                print(onepointcut)
-                child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
-                child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
-                print(parent1.genotyp)
-                print(parent2.genotyp)
-                print(child1)
-                print(child2)
+            maxGeneration -= 1
 
-                individuals_list.remove(parent1)
-                individuals_list.remove(parent2)
-                individuals_list.append(Individual(child1, self.f(child1)))
-                individuals_list.append(Individual(child2, self.f(child2)))
+        for i in individuals_list:
+            print(i.genotyp, i.fenotyp)
 
-            case 1: # Order Crossover, OX
-                pass
-            case 1: # Partially Mapped Crossover PMX
-                pass
-            case _:
-                return "error"
-
+def missingNumber(lis, max):
+    x = [i for i in range(max)]
+    for l in lis:
+        if l in x:
+            x.remove(l)
+    random.shuffle(x)
+    return x
 
 
 
@@ -485,7 +509,7 @@ class Euc2D(Graph):
 
 full = Full()
 full.random(5)
-listOfDecision = [1, 1, 1] # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke 
+listOfDecision = [1, 1, 1, 0.0] # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke 
 
-full.generic(listOfDecision, 5)
+full.generic(listOfDecision, 5, 15)
 print("sss")
