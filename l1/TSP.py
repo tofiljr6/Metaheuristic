@@ -3,6 +3,7 @@ import re
 import sys
 import os
 from turtle import color
+from numpy import mat
 import psutil
 import time
 from copy import copy, deepcopy
@@ -296,6 +297,81 @@ class Graph(ABC):
                 
         return solution
 
+    def generic(self, listOfDecision, numberOfIndividuals):
+        individuals_list = list()
+
+        # step 1: wygenerowanie populacji początkowej
+        match listOfDecision[0]: 
+            case 1: # random
+                for i in range(numberOfIndividuals):
+                    x = [j for j in range(numberOfIndividuals)]
+                    random.shuffle(x)
+                    individuals_list.append(Individual(x, self.f(x)))
+            case 2: # stosując metaheurystyke
+                pass
+            case _:
+                return "error"
+
+
+        # while pokolenie
+        
+        parent1 = None
+        parent2 = None
+        # step 2: selekcja 
+        match listOfDecision[1]:
+            case 1: # losowa - każdy osobnik ma równe szanse bycia wybranym
+                print("case 1")
+                while True:
+                    parent1index = random.randint(0, len(individuals_list)-1)
+                    parent2index = random.randint(0, len(individuals_list)-1)
+
+                    if parent1index != parent2index:
+                        break
+                parent1 = individuals_list[parent1index]
+                parent2 = individuals_list[parent2index]
+            case 2: # ruletka
+                pass
+            case 3: # turniej
+                pass
+            case _:
+                return "error"
+
+
+        # step 3: krzyżowanie
+        match listOfDecision[2]:
+            case 1: # Half Crossover, HX
+                onepointcut = random.randint(0, len(self.matrix))
+                print(onepointcut)
+                child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
+                child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
+                print(parent1.genotyp)
+                print(parent2.genotyp)
+                print(child1)
+                print(child2)
+
+                individuals_list.remove(parent1)
+                individuals_list.remove(parent2)
+                individuals_list.append(Individual(child1, self.f(child1)))
+                individuals_list.append(Individual(child2, self.f(child2)))
+
+            case 1: # Order Crossover, OX
+                pass
+            case 1: # Partially Mapped Crossover PMX
+                pass
+            case _:
+                return "error"
+
+
+
+
+class Individual:
+    genotyp = list() # ciąg kodowy genów reprezentujących rozwiązanie
+    fenotyp = 0
+
+    def __init__(self, gen, fen): # Individual([1,2,3....,n], Graph.f([1,2,3,...,n]))
+        self.genotyp = gen
+        self.fenotyp = fen
+
 
 class MyStruct():
     def __init__(self, size):
@@ -406,3 +482,10 @@ class Euc2D(Graph):
                  [self.y[result[len(result) - 1]], self.y[result[0]]],
                  color="red")
         plt.show()
+
+full = Full()
+full.random(5)
+listOfDecision = [1, 1, 1] # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke 
+
+full.generic(listOfDecision, 5)
+print("sss")
