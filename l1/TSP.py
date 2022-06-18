@@ -324,16 +324,6 @@ class MyStruct():
         # return list(self.q.queue)
 
 
-# m = MyStruct(5)
-# m.push((1, 0))
-# m.push((2, 0))
-# m.push((3, 0))
-# m.push((4, 0))
-# m.push((5, 0))
-# print(m.queueToArray())
-# m.push((6, 0))
-# print(m.queueToArray())
-
 class Full(Graph):
     def load(self, filename):
         problem = tsplib95.load(filename)
