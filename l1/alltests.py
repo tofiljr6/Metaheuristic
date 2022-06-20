@@ -713,3 +713,111 @@ def timeComplexity():
 # print_result(fullRes)
 # print("Cycle size: ",full.f(fullRes))
 # print("PRD: ",full.PRD(6942,fullRes))
+
+def compareIISres():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    # full = Full()
+    full = Euc2D()
+    instanceSize = [5, 10, 15, 20, 25, 30, 35]
+    invertResults = []
+    insertResults = []
+    swapResults = []
+
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+        listOfDecision = [1, 1, 1, 0.05]
+        s=full.generic(listOfDecision,copu, 10, insert, 10, 100, 1000)
+        print(full.f(s))
+        invertResults.append(full.f(s))
+
+        listOfDecision = [1, 2, 1, 0.05]
+        s = full.generic(listOfDecision, full.twoOPT, 10, insert, 10, 100, 1000)
+        print(full.f(s))
+        insertResults.append(full.f(s))
+
+        listOfDecision = [1, 3, 1, 0.05]
+        s = full.generic(listOfDecision, full.twoOPT, 10, insert, 10, 100, 1000)
+        print(full.f(s))
+        swapResults.append(full.f(s))
+
+    print(invertResults)
+    print(insertResults)
+    print(swapResults)
+
+    chart = Charts("Porównanie losowe, ruletka, turniej", " rozmiar instancji", "f")
+    chart.load(instanceSize, invertResults, "red", "losowe")
+    chart.load(instanceSize, insertResults, "green", "ruletka")
+    chart.load(instanceSize, swapResults, "blue", "turniej")
+    chart.plot()
+
+def compareIIS():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    #full = Euc2D()
+    instanceSize = [5, 10, 15, 20, 25, 30, 35]
+    invertResults = []
+    insertResults = []
+    swapResults = []
+
+    for currentInstatnceSize in instanceSize:
+        full.random(currentInstatnceSize)
+        startingArray = [i for i in range(currentInstatnceSize)]
+        random.shuffle(startingArray)
+        listOfDecision = [1, 1, 1, 0.05]
+        start = time.time()
+        s = full.generic(listOfDecision, copy(startingArray), 10, insert, 10, 100, 1000)
+        end = time.time()
+        print(end - start)
+        invertResults.append(end - start)
+
+        listOfDecision = [1, 1, 1, 0.05]
+        start = time.time()
+        s = full.generic(listOfDecision, copy(startingArray), 10, insert, 10, 100, 1000)
+        end = time.time()
+        print(end - start)
+        insertResults.append(end - start)
+
+        listOfDecision = [1, 1, 1, 0.05]
+        start = time.time()
+        s = full.generic(listOfDecision, copy(startingArray), 10, insert, 10, 100, 1000)
+        end = time.time()
+        print(end - start)
+        swapResults.append(end - start)
+
+    print(invertResults)
+    print(insertResults)
+    print(swapResults)
+
+    chart = Charts("Porównanie HX, OX, PMX", " rozmiar instancji", "t")
+    chart.load(instanceSize, invertResults, "red", "HX")
+    chart.load(instanceSize, insertResults, "green", "OX")
+    chart.load(instanceSize, swapResults, "blue", "PMX")
+    chart.plot()
+
+
+def compareIIS():
+    # medota porównująca co jest lepsze: invert insert czy swap?
+    full = Full()
+    #full = Euc2D()
+    probabilities = [0.05,0.10,0.25,0.5,0.75,1]
+    invertResults = []
+    insertResults = []
+    swapResults = []
+
+    for p in probabilities:
+        full.random(20)
+        startingArray = [i for i in range(20)]
+        random.shuffle(startingArray)
+        listOfDecision = [1, 1, 1, p]
+        s = full.generic(listOfDecision, copy(startingArray), 10, insert, 10, 100, 1000)
+        invertResults.append(full.f(s))
+
+    chart = Charts("Porównanie prawdopodobienstw mutacji", "prawdodobienstwo", "t")
+    chart.load(probabilities, invertResults, "red", "p")
+    chart.plot()
+
+compareIIS()
+
+

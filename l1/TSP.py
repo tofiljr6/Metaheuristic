@@ -44,37 +44,63 @@ def insert(vector, i, j):
     new.insert(j, vector[i])
     return new
 
-def PMX(parent1,parent2,size):
-    pass
 
-def OX(parent1,parent2,size):
-    cut1 = random.randint(0,size)
-    cut2 = random.randint(0,size)
-    fragment=parent1.genotyp[cut1:cut2]
-    parent2_copy=copy(parent2)
-    # for i in fragment:
-    #     parent2_copy.genotyp.remove(i)
-    # child1=parent2_copy.genotyp[:cut1]+fragment+parent2_copy.genotyp[cut1:]
-    # fragment = parent2.genotyp[cut1:cut2]
-    print(parent2.genotyp)
+def PMX(parent1, parent2, size):
+    cut = random.sample(range(0, size), 2)
+    cut1 = cut[0]
+    cut2 = cut[1]
+    if cut1 > cut2:
+        cut1, cut2 = cut2, cut1
+    fragment1 = parent1.genotyp[cut1:cut2]
+    fragment2 = parent2.genotyp[cut1:cut2]
+    map1 = dict()
+    map2 = dict()
+    for i in range(len(fragment1)):
+        map1[fragment1[i]] = fragment2[i]
+        map2[fragment2[i]] = fragment1[i]
+    child1 = parent1.genotyp[:cut1] + fragment2 + parent1.genotyp[cut2:]
+    child2 = parent2.genotyp[:cut1] + fragment1 + parent2.genotyp[cut2:]
+    for i in range(cut1):
+        while child1.count(child1[i])>1:
+            child1[i] = map2.get(child1[i],child1[i])
+        while child2.count(child2[i]) > 1:
+            child2[i] = map1.get(child2[i], child2[i])
+    for i in range(cut2, len(child1)):
+        while child1.count(child1[i]) > 1:
+            child1[i] = map2.get(child1[i], child1[i])
+        while child2.count(child2[i]) > 1:
+            child2[i] = map1.get(child2[i], child2[i])
+    return child1,child2
+
+def OX(parent1, parent2, size):
+    cut = random.sample(range(1, size), 2)
+    cut1 = cut[0]
+    cut2 = cut[1]
+    if cut1 > cut2:
+        cut1, cut2 = cut2, cut1
+    fragment = parent1.genotyp[cut1:cut2]
+    parent2_copy = deepcopy(parent2)
     for i in fragment:
-        print(parent1.genotyp,i)
-        parent1.genotyp.remove(i)
-    child2 = parent1.genotyp[:cut1] + fragment + parent1.genotyp[cut1:]
-    #print(child1,child2)
-    return child2,child2
+        parent2_copy.genotyp.remove(i)
+    child1 = parent2_copy.genotyp[:cut1] + fragment + parent2_copy.genotyp[cut1:]
+    fragment = parent2.genotyp[cut1:cut2]
+    parent1_copy = deepcopy(parent1)
+    for i in fragment:
+        parent1_copy.genotyp.remove(i)
+    child2 = parent1_copy.genotyp[:cut1] + fragment + parent1_copy.genotyp[cut1:]
+    return child1, child2
 
 
-def HX(parent1,parent2,size):
-    onepointcut = random.randint(0,size)
+def HX(parent1, parent2, size):
+    onepointcut = random.randint(0, size)
     # child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
     # child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
-    child1 = parent1.genotyp[:onepointcut] + missingNumber(parent2.genotyp[:onepointcut],
-                                                           len(parent2.genotyp))
-    child2 = parent2.genotyp[:onepointcut] + missingNumber(parent1.genotyp[:onepointcut],
+    child1 = parent1.genotyp[:onepointcut] + missingNumber(parent1.genotyp[:onepointcut],
                                                            len(parent1.genotyp))
+    child2 = parent2.genotyp[:onepointcut] + missingNumber(parent2.genotyp[:onepointcut],
+                                                           len(parent2.genotyp))
 
-    return child1,child2
+    return child1, child2
 
 
 # klasa abstrakcyjna grafu
@@ -335,7 +361,7 @@ class Graph(ABC):
         match listOfDecision[0]:
             case 1:
                 for i in range(numberOfIndividuals):
-                    x = [j for j in range(numberOfIndividuals)]
+                    x = [j for j in range(len(self.matrix))]
                     random.shuffle(x)
                     individuals_list.append(Individual(x, self.f(x)))
             case 2:
@@ -349,11 +375,9 @@ class Graph(ABC):
                 return "error"
 
         generation = 0
-        generationNoChange = 0
         startTime = time.time()
 
         # while pokolenie
-        # while generationNoChange < maxGeneration:
         # while time.time()-startTime<stop:
         while generation < maxGeneration:
             parents_list = list()
@@ -378,6 +402,7 @@ class Graph(ABC):
                             probability.append(i.fenotyp)
                         parent = random.choices(individuals_list, probability, k=2)
                         parents_list.append((parent[0], parent[1]))
+
                     case 3:  # turniej
                         rand_indiv = list()
                         for _ in range(k):
@@ -385,7 +410,11 @@ class Graph(ABC):
                         parent1 = min(rand_indiv, key=lambda x: x.fenotyp)
                         rand_indiv = []
                         for _ in range(k):
-                            rand_indiv.append(individuals_list[random.randint(0, len(individuals_list) - 1)])
+                            while True:
+                                x=individuals_list[random.randint(0, len(individuals_list) - 1)]
+                                if x.genotyp!=parent1.genotyp:
+                                    break
+                            rand_indiv.append(x)
                         parent2 = min(rand_indiv, key=lambda x: x.fenotyp)
                         parents_list.append((parent1, parent2))
                     case _:
@@ -395,13 +424,14 @@ class Graph(ABC):
             for parents in parents_list:
                 parent1 = parents[0]
                 parent2 = parents[1]
+
+                #print(parent1.genotyp, parent2.genotyp)
                 # step 3: krzyżowanie
                 match listOfDecision[2]:
                     case 1:  # Half Crossover, HX
-                        child1,child2=HX(parent1,parent2,len(self.matrix))
+                        child1, child2 = HX(parent1, parent2, len(self.matrix))
                         individuals_list.append(Individual(child1, self.f(child1)))
                         individuals_list.append(Individual(child2, self.f(child2)))
-
                     case 2:  # Order Crossover, OX
                         child1, child2 = OX(parent1, parent2, len(self.matrix))
                         individuals_list.append(Individual(child1, self.f(child1)))
@@ -417,14 +447,14 @@ class Graph(ABC):
             for individual in individuals_list:
                 if random.random() < listOfDecision[3]:
                     if callable(mutation):
-                        mutation(individual, random.randint(0, numberOfIndividuals - 1),
-                                 random.randint(0, numberOfIndividuals - 1))
+                        mutation(individual.genotyp, random.randint(0, len(self.matrix)-1),
+                                 random.randint(0, len(self.matrix)-1))
 
             generation += 1
         # for i in individuals_list:
         #     print(i.genotyp,i.fenotyp)
         result = min(individuals_list, key=lambda x: x.fenotyp)
-        print(result.genotyp, result.fenotyp)
+        return result.genotyp
 
 
 def missingNumber(lis, max):
@@ -556,8 +586,16 @@ class Euc2D(Graph):
         plt.show()
 
 
-full = Full()
-full.random(5)
-listOfDecision = [2, 3, 2, 0.0]  # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke
+# full=Full()
+# full.random(10)
+# listOfDecision = [1, 2, 3, 0.05]
+# full.generic(listOfDecision, full.twoOPT, 10, insert, 10, 100, 1000)
 
-full.generic(listOfDecision, full.twoOPT, 10, insert, 5, 5, 15)
+
+
+
+
+
+
+
+
