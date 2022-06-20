@@ -44,6 +44,38 @@ def insert(vector, i, j):
     new.insert(j, vector[i])
     return new
 
+def PMX(parent1,parent2,size):
+    pass
+
+def OX(parent1,parent2,size):
+    cut1 = random.randint(0,size)
+    cut2 = random.randint(0,size)
+    fragment=parent1.genotyp[cut1:cut2]
+    parent2_copy=copy(parent2)
+    # for i in fragment:
+    #     parent2_copy.genotyp.remove(i)
+    # child1=parent2_copy.genotyp[:cut1]+fragment+parent2_copy.genotyp[cut1:]
+    # fragment = parent2.genotyp[cut1:cut2]
+    print(parent2.genotyp)
+    for i in fragment:
+        print(parent1.genotyp,i)
+        parent1.genotyp.remove(i)
+    child2 = parent1.genotyp[:cut1] + fragment + parent1.genotyp[cut1:]
+    #print(child1,child2)
+    return child2,child2
+
+
+def HX(parent1,parent2,size):
+    onepointcut = random.randint(0,size)
+    # child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
+    # child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
+    child1 = parent1.genotyp[:onepointcut] + missingNumber(parent2.genotyp[:onepointcut],
+                                                           len(parent2.genotyp))
+    child2 = parent2.genotyp[:onepointcut] + missingNumber(parent1.genotyp[:onepointcut],
+                                                           len(parent1.genotyp))
+
+    return child1,child2
+
 
 # klasa abstrakcyjna grafu
 class Graph(ABC):
@@ -200,8 +232,8 @@ class Graph(ABC):
         aspirationList = MyStruct(tabuSize)
 
         # while time.time()-startTime<stop:
-        while iterationNoChange<stop:
-        # while iteration < stop:
+        while iterationNoChange < stop:
+            # while iteration < stop:
             iteration += 1
             # generowanie sasiedztwa
             N = []
@@ -268,14 +300,14 @@ class Graph(ABC):
                             if s > e:
                                 s, e = e, s
 
-                            if not (s,e) in tabooList.queueToArray():
-                                NwithoutTaboo.append((s,e))
+                            if not (s, e) in tabooList.queueToArray():
+                                NwithoutTaboo.append((s, e))
                                 break
                     case _:
                         return solution
 
             # wybor najlepszego rozwiazania
-            if len(NwithoutTaboo)>0:
+            if len(NwithoutTaboo) > 0:
                 pi = min(NwithoutTaboo, key=lambda t: self.f(neighbourhood(copy(solution), t[0], t[1])))
                 tabooList.push((pi[0], pi[1]))
                 neighbour = neighbourhood(solution, pi[0], pi[1])
@@ -284,99 +316,116 @@ class Graph(ABC):
                 # jesli tak dodajemy jako kryterium aspiracji
                 if new > self.f(neighbourhood(solution, bestTaboo[0], bestTaboo[1])):
                     aspirationList.push((solution, bestTaboo[0], bestTaboo[1]))
-                    
+
                 if new < best:
                     # f_res = self.f(neighbour)
                     f_best = 6942
-                    print(iteration, new, end=" ") # self.PRD(39, solution))
+                    print(iteration, new, end=" ")  # self.PRD(39, solution))
                     print(((new - f_best) / f_best) * 100)
                     solution = neighbour
                     best = new
                 else:
                     iterationNoChange += 1
-                
+
         return solution
 
-    def generic(self, listOfDecision, numberOfIndividuals, maxGeneration):
-        individuals_list = list()
-
+    def generic(self, listOfDecision, start, arg, mutation, k, numberOfIndividuals, maxGeneration):
         # step 1: wygenerowanie populacji początkowej
-        match listOfDecision[0]: 
-            case 1: # random
+        individuals_list = list()
+        match listOfDecision[0]:
+            case 1:
                 for i in range(numberOfIndividuals):
                     x = [j for j in range(numberOfIndividuals)]
                     random.shuffle(x)
                     individuals_list.append(Individual(x, self.f(x)))
-            case 2: # stosując metaheurystyke
-                pass
+            case 2:
+                if callable(start):
+                    for i in range(numberOfIndividuals):
+                        x = start(arg)
+                        individuals_list.append(Individual(x, self.f(x)))
+                else:
+                    return "error"
             case _:
                 return "error"
 
-        for i in individuals_list:
-            print(i.genotyp, i.fenotyp)
+        generation = 0
+        generationNoChange = 0
+        startTime = time.time()
 
         # while pokolenie
-        while maxGeneration > 0:
-        
-            parent1 = None
-            parent2 = None
-            # step 2: selekcja 
-            match listOfDecision[1]:
-                case 1: # losowa - każdy osobnik ma równe szanse bycia wybranym
-                    print("case 1")
-                    while True:
-                        parent1index = random.randint(0, len(individuals_list)-1)
-                        parent2index = random.randint(0, len(individuals_list)-1)
+        # while generationNoChange < maxGeneration:
+        # while time.time()-startTime<stop:
+        while generation < maxGeneration:
+            parents_list = list()
+            for i in range(int(numberOfIndividuals / 2)):
+                parent1 = None
+                parent2 = None
+                # step 2: selekcja
+                match listOfDecision[1]:
+                    case 1:  # losowa - każdy osobnik ma równe szanse bycia wybranym
+                        while True:
+                            parent1index = random.randint(0, len(individuals_list) - 1)
+                            parent2index = random.randint(0, len(individuals_list) - 1)
 
-                        if parent1index != parent2index:
-                            break
-                    parent1 = individuals_list[parent1index]
-                    parent2 = individuals_list[parent2index]
-                case 2: # ruletka
-                    pass
-                case 3: # turniej
-                    pass
-                case _:
-                    return "error"
+                            if parent1index != parent2index:
+                                break
+                        parent1 = individuals_list[parent1index]
+                        parent2 = individuals_list[parent2index]
+                        parents_list.append((parent1, parent2))
+                    case 2:  # ruletka
+                        probability = list()
+                        for i in individuals_list:
+                            probability.append(i.fenotyp)
+                        parent = random.choices(individuals_list, probability, k=2)
+                        parents_list.append((parent[0], parent[1]))
+                    case 3:  # turniej
+                        rand_indiv = list()
+                        for _ in range(k):
+                            rand_indiv.append(individuals_list[random.randint(0, len(individuals_list) - 1)])
+                        parent1 = min(rand_indiv, key=lambda x: x.fenotyp)
+                        rand_indiv = []
+                        for _ in range(k):
+                            rand_indiv.append(individuals_list[random.randint(0, len(individuals_list) - 1)])
+                        parent2 = min(rand_indiv, key=lambda x: x.fenotyp)
+                        parents_list.append((parent1, parent2))
+                    case _:
+                        return "error"
 
+            individuals_list = []
+            for parents in parents_list:
+                parent1 = parents[0]
+                parent2 = parents[1]
+                # step 3: krzyżowanie
+                match listOfDecision[2]:
+                    case 1:  # Half Crossover, HX
+                        child1,child2=HX(parent1,parent2,len(self.matrix))
+                        individuals_list.append(Individual(child1, self.f(child1)))
+                        individuals_list.append(Individual(child2, self.f(child2)))
 
-            # step 3: krzyżowanie
-            match listOfDecision[2]:
-                case 1: # Half Crossover, HX
-                    onepointcut = random.randint(0, len(self.matrix))
-                    print(onepointcut)
-                    # child1 = parent1.genotyp[:onepointcut] + parent2.genotyp[onepointcut:]
-                    # child2 = parent2.genotyp[:onepointcut] + parent1.genotyp[onepointcut:]
-                    child1 = parent1.genotyp[:onepointcut] + missingNumber(parent1.genotyp[:onepointcut], len(parent1.genotyp))
-                    child2 = parent2.genotyp[:onepointcut] + missingNumber(parent2.genotyp[:onepointcut], len(parent2.genotyp))
-
-                    print(parent1.genotyp)
-                    print(parent2.genotyp)
-                    print(child1)
-                    print(child2)
-
-                    individuals_list.remove(parent1)
-                    individuals_list.remove(parent2)
-                    individuals_list.append(Individual(child1, self.f(child1)))
-                    individuals_list.append(Individual(child2, self.f(child2)))
-
-                case 1: # Order Crossover, OX
-                    pass
-                case 1: # Partially Mapped Crossover PMX
-                    pass
-                case _:
-                    return "error"
+                    case 2:  # Order Crossover, OX
+                        child1, child2 = OX(parent1, parent2, len(self.matrix))
+                        individuals_list.append(Individual(child1, self.f(child1)))
+                        individuals_list.append(Individual(child2, self.f(child2)))
+                    case 3:  # Partially Mapped Crossover PMX
+                        child1, child2 = PMX(parent1, parent2, len(self.matrix))
+                        individuals_list.append(Individual(child1, self.f(child1)))
+                        individuals_list.append(Individual(child2, self.f(child2)))
+                    case _:
+                        return "error"
 
             # step 4
-            if random.random() < listOfDecision[3]:
-                # mutuj
-                pass
+            for individual in individuals_list:
+                if random.random() < listOfDecision[3]:
+                    if callable(mutation):
+                        mutation(individual, random.randint(0, numberOfIndividuals - 1),
+                                 random.randint(0, numberOfIndividuals - 1))
 
+            generation += 1
+        # for i in individuals_list:
+        #     print(i.genotyp,i.fenotyp)
+        result = min(individuals_list, key=lambda x: x.fenotyp)
+        print(result.genotyp, result.fenotyp)
 
-            maxGeneration -= 1
-
-        for i in individuals_list:
-            print(i.genotyp, i.fenotyp)
 
 def missingNumber(lis, max):
     x = [i for i in range(max)]
@@ -387,12 +436,11 @@ def missingNumber(lis, max):
     return x
 
 
-
 class Individual:
-    genotyp = list() # ciąg kodowy genów reprezentujących rozwiązanie
+    genotyp = list()  # ciąg kodowy genów reprezentujących rozwiązanie
     fenotyp = 0
 
-    def __init__(self, gen, fen): # Individual([1,2,3....,n], Graph.f([1,2,3,...,n]))
+    def __init__(self, gen, fen):  # Individual([1,2,3....,n], Graph.f([1,2,3,...,n]))
         self.genotyp = gen
         self.fenotyp = fen
 
@@ -507,9 +555,9 @@ class Euc2D(Graph):
                  color="red")
         plt.show()
 
+
 full = Full()
 full.random(5)
-listOfDecision = [1, 1, 1, 0.0] # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke 
+listOfDecision = [2, 3, 2, 0.0]  # patrz: krok 1, miał do wyboru (1) losowa, (2) stosując heurystyke
 
-full.generic(listOfDecision, 5, 15)
-print("sss")
+full.generic(listOfDecision, full.twoOPT, 10, insert, 5, 5, 15)
