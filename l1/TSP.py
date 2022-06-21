@@ -9,7 +9,7 @@ import time
 from copy import copy, deepcopy
 import random
 from math import sqrt
-from pyparsing import col
+from pyparsing import Char, col
 import tsplib95
 from matplotlib import pyplot as plt
 from abc import ABC, abstractmethod
@@ -17,7 +17,7 @@ from Charts import Charts
 from heapq import *
 import queue
 from collections import deque
-
+from operator import itemgetter
 
 # wypisywanie cyklu
 def print_result(result):
@@ -43,7 +43,6 @@ def insert(vector, i, j):
     new = vector[0:i] + vector[i + 1:]
     new.insert(j, vector[i])
     return new
-
 
 def PMX(parent1, parent2, size):
     cut = random.sample(range(0, size), 2)
@@ -355,7 +354,8 @@ class Graph(ABC):
 
         return solution
 
-    def generic(self, listOfDecision, start, arg, mutation, k, numberOfIndividuals, maxGeneration):
+    def generic(self, listOfDecision, start, arg, mutation, k, numberOfIndividuals, maxGeneration, preIndividualList=None):
+        global optcycle
         # step 1: wygenerowanie populacji początkowej
         individuals_list = list()
         match listOfDecision[0]:
@@ -371,15 +371,27 @@ class Graph(ABC):
                         individuals_list.append(Individual(x, self.f(x)))
                 else:
                     return "error"
+            case 3: # predefiniowna lista 
+                c = preIndividualList
+                for i in c:
+                    individuals_list.append(Individual(i, self.f(i)))
             case _:
                 return "error"
 
         generation = 0
+        generationWithoutChanges = 0 
+
+        bestresult = min(individuals_list, key=lambda x: x.fenotyp).fenotyp
+        bestresultlist = list()
+        print(generation, bestresult, round(((bestresult - optcycle) / optcycle) * 100,2), "%")
+        bestresultlist.append([generation, bestresult, round(((bestresult - optcycle) / optcycle) * 100,2)])
+
         startTime = time.time()
 
         # while pokolenie
         # while time.time()-startTime<stop:
-        while generation < maxGeneration:
+        # while generation < maxGeneration:
+        while generationWithoutChanges < maxGeneration:
             parents_list = list()
             for i in range(int(numberOfIndividuals / 2)):
                 parent1 = None
@@ -451,10 +463,23 @@ class Graph(ABC):
                                  random.randint(0, len(self.matrix)-1))
 
             generation += 1
+            generationWithoutChanges += 1
+
+            currentresult = min(individuals_list, key=lambda x: x.fenotyp).fenotyp
+            if currentresult < bestresult:
+                print(generation, currentresult, round(((currentresult - optcycle) / optcycle) * 100,2), "%")
+                bestresultlist.append([generation, currentresult, round(((currentresult - optcycle) / optcycle) * 100,2)])
+                bestresult = currentresult
+                generationWithoutChanges = 0
+
+                # if currentresult == optcycle:
+                #     break
+
+
         # for i in individuals_list:
         #     print(i.genotyp,i.fenotyp)
         result = min(individuals_list, key=lambda x: x.fenotyp)
-        return result.genotyp
+        return result.genotyp, bestresultlist
 
 
 def missingNumber(lis, max):
@@ -585,17 +610,46 @@ class Euc2D(Graph):
                  color="red")
         plt.show()
 
+def generateData(numberOfIndividuals, size):
+    c = list()
+    for i in range(numberOfIndividuals):
+        x = [j for j in range(size)]
+        random.shuffle(x)
+        c.append(x)
+    return c
 
-# full=Full()
+
+full=Full()
 # full.random(10)
-# listOfDecision = [1, 2, 3, 0.05]
-# full.generic(listOfDecision, full.twoOPT, 10, insert, 10, 100, 1000)
+full.load("gr120.tsp")
+optcycle = 6942 # 2085
+data = generateData(100, len(full.matrix))
 
+listOfDecision = [3, 3, 1, 0.1]
+# param1: 1 - random start cycle 2 - full.twoOPT 3 - predef individual list
+# param2: 1 - losowa 2 - ruletka 3 - turniej
+# param3: 1 - HX, 2 - OX, 3 - PMX
+# param4: propability
+_, dataHX = full.generic(listOfDecision, full.twoOPT, 15, swap, 10, 100, 1000, data)
+listOfDecision = [3, 3, 2, 0.1]
+print("\n")
+_, dataOX = full.generic(listOfDecision, full.twoOPT, 15, swap, 10, 100, 1000, data)
+listOfDecision = [3, 3, 3, 0.1]
+print("\n")
+_, dataPMX = full.generic(listOfDecision, full.twoOPT, 15, swap, 10, 100, 1000, data)
 
+def splitter(data):
+    x = list(map(itemgetter(0), data))
+    y = list(map(itemgetter(1), data))
+    prd = list(map(itemgetter(2), data))
+    return x, y, prd
 
+xHX, yHX, prdHX = splitter(dataHX)
+xOX, yOX, prdOX = splitter(dataOX)
+xPMX, yPMX, prdPMX = splitter(dataPMX)
 
-
-
-
-
-
+c = Charts("gr120", "generacja", "PRD")
+c.load(xHX, prdHX, "red", "HX")
+c.load(xOX, prdOX, "green", "OX")
+c.load(xPMX, prdPMX, "blue", "PMX")
+c.plot(annotate=True)

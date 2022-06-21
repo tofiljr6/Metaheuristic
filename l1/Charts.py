@@ -1,3 +1,6 @@
+from operator import le
+from re import X
+from time import sleep
 import matplotlib.pyplot as plt
 
 class Charts:
@@ -22,15 +25,30 @@ class Charts:
         self.colors.append(color)
         self.labels.append(label)
         
-    def plot(self):
+    def plot(self, annotate=False):
         for i in range(len(self.x)):
             plt.plot(self.x[i], self.y[i],color=self.colors[i], marker="o", label=self.labels[i])
+            # plt.annotate("siema", xy=)
+
+        if annotate:
+            for i in range(len(self.x)):
+                x = self.x[i]
+                y = self.y[i]
+                plt.annotate(text=str(y[len(x)-1]) +"%", xy=(x[len(x)-1], y[len(y)-1]))
+
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.title(self.title)
         plt.grid(True)
         plt.legend(loc="upper left")
         plt.show()
+
+
+# c = Charts("titel", "x", "y")
+# c.load([4.05, 1.02, 3.66], [1.22, 3.22, 7.33], "red", "red")
+# c.load([2.05, 5.02, 8.66], [2.22, 4.22, 1.33], "blue", "red")
+# c.plot(annotate=True)
+
 
 # class Splitter():
 #     def __init__(self, filename):

@@ -9,6 +9,7 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{algpseudocode}
+\usepackage{subfig}
 
 \begin{document}
     \begin{titlepage}
@@ -56,12 +57,12 @@
     wraz z tym samym rozwiązaniem początkowym. Wykres poniżej
     został wykonany dla intacji o macierzy pełnej.
 
-    \includegraphics[width=11cm]{./spr3img/Figure_1FULL.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_1FULL.png}
 
     Następnie przeprowadziliśmy ten sam eksperyment, z tą różnicą
     że teraz dla przestrzeni euklidesowej.
 
-   \includegraphics[width=11cm]{./spr3img/Figure_2.png}
+   \includegraphics[width=11cm]{../spr3img/Figure_2.png}
 
     Jak możemy zauważyć, dla wszystkich przeprowadzonych
     przez nas intacji, selekcja \emph{losowa} okazała się być
@@ -78,12 +79,12 @@
 
     Dla instacji o macierzy pełnej, wygenerowanej losowo.
 
-    \includegraphics[width=11cm]{./spr3img/Figure_1FULL.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_1FULL.png}
 
     Dla instacji z macierzą, wypełnioną odległościami z przestrzeni
     euklidesowej.
 
-    \includegraphics[width=11cm]{./spr3img/Figure_1.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_1.png}
 
     Tym razem \emph{losowa} nie był najlepszym wyborem z możliwych przez nas
     zaimplementowanych otoczeń. Teraz najlepszy okazał się \emph{turniej}.
@@ -97,22 +98,22 @@
     powyższych 3, przeprowadziliśmy analogiczne eksperymenty.
     Najpierw czas.
 
-     \includegraphics[width=11cm]{./spr3img/Figure_4.png}
+     \includegraphics[width=11cm]{../spr3img/Figure_4.png}
 
     Dla przestrzeni euklidesowej
 
-    \includegraphics[width=11cm]{./spr3img/Figure_4EUC.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_4EUC.png}
 
     Teraz wartość funkcji celu.
 
     Dla instacji o macierzy pełnej, wygenerowanej losowo.
 
-    \includegraphics[width=11cm]{./spr3img/Figure_3FULL.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_3FULL.png}
 
     Dla instacji z macierzą, wypełnioną odległościami z przestrzeni
     euklidesowej.
 
-    \includegraphics[width=11cm]{./spr3img/Figure_3.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_3.png}
 
    Jak widać żadne z krzyżowań się nie wyróżniło. Wszystkie mają podobny
    czas i efektywność, wykresy wzajemnie się przecinają w zależności od
@@ -122,15 +123,15 @@
 
     Najpierw zbadaliśmy wpływ częstości mutacji na czas
 
-    \includegraphics[width=11cm]{./spr3img/Figure_5.png}
+    \includegraphics[width=11cm]{../spr3img/Figure_5.png}
 
     Jak widać im częsciej robimy mutacje, tym dłużej działa algorytm.
 
     Ważniejszy jest jednak wpływ prawdopodobieństwa mutcji na końcowy wynik.
 
-     \includegraphics[width=11cm]{./spr3img/Figure_6.png}
+     \includegraphics[width=11cm]{../spr3img/Figure_6.png}
 
-     \includegraphics[width=11cm]{./spr3img/Figure_62.png}
+     \includegraphics[width=11cm]{../spr3img/Figure_62.png}
 
      Można zauważyć, że nie ma szczególnej zasady, co do wpływu częstości
      mutacji na wynik. Analizując jednak oba te wykresy oraz wykres czasu
@@ -146,14 +147,14 @@
     nie znaleźliśmy lepszego rozwiązania, przez k-iteracji. Ostatnim z koleji jest, czas,
     zaznaczony kolorem niebieskim.
 
-    \includegraphics[width=11cm]{./spr2img/Figure_8.png}
+    \includegraphics[width=11cm]{../spr2img/Figure_8.png}
 
     Funckja kosztu dla ogarniczenia samymi iteracjami jest znacząco większa niż liczenie
     iteracji bez zmian. Jest to naturalne zachowanie, wynikające z faktu, że prawie zawsze
 
     $$I + K = iteracje(iloscBezZmian) > iteracje(zwykle) = I$$
 
-    \includegraphics[width=11cm]{./spr2img/Figure_10.png}
+    \includegraphics[width=11cm]{../spr2img/Figure_10.png}
 
     Jak można było się spodziewać, ilość iteracji bez zmiany zdecydowanie korzystniej
     wpływa na funckje kosztu niż sama ilość iteracacji. Teraz porównamy, jak
@@ -166,15 +167,48 @@
 
     \section{Złożoność obliczeniowa algortmu genetycznego}
 
+    
     Złożonośc obliczeniowa zależy od wielu czynników takich jak:
     rozmiar populacji, typ selekcji, czy krzyżowania.
 
-    TODO
+    \section{Algorytm genetyczny dla gr17}
+
+    W celu przetestowaniu naszego algorytmu, chcieliśmy sprawdzić jak dobry jest
+    nasz algorytm. Do analizy użyliśmy PRD, porónując uzyskane wyniki z optymalną długością
+    cyklu. Eksperymet przeprowadziliśmy dla każdego operatora krzyżowania, starując zawsze
+    od tych samych warunków początkowych dla każdego operatora. Jako warunek stopu przyliśmy 
+    1000-teracji bez poprawy. Tak prezetują się otrzymane wyniki (Wyniki na końcu sprawozdania) 
+
+    \begin{figure}[p]
+        \centering
+        \subfloat[first]{
+            \includegraphics[width=65mm]{../spr3img/grX/Figure_1.png}
+        }
+        \subfloat[second]{
+            \includegraphics[width=65mm]{../spr3img/grX/Figure_2.png}
+        }
+        \newline
+        \subfloat[third]{
+            \includegraphics[width=65mm]{../spr3img/grX/Figure_3.png}
+        }
+        \subfloat[forth]{
+            \includegraphics[width=65mm]{../spr3img/grX/Figure_4.png}
+        }
+        \caption{Wykresy porównujące operatory krzyżowania dla gr17, każdy wykres 
+        to inne warunki początkowe}
+    \end{figure}
+
+    Wnisoki jakie wysuneliśmy z otrzmanych wykresów, to że operator krzyżowania HX,
+    dla instacji gr17 trwał zawsze najdłuższej. Znajdował co prawda coraz lepsze wyniki mieszać się 
+    w warunku stopu, natomiast nie był wstanianie w niektórych przypadkach znaleźć optynalnego rozwiązania.
+    Algorytmy, które w małej ilości generacji uzyskały optyamlne rozwiązanie są 
+    krzyżowania OX i PMX. Różnica pomiędzy nimi jest znikoma, minimalnie gorsze optymalizajce
+    stosowała metodyka OX i potrzebowała na to więcej generacji niż PMX.
 
     \section{Algorytm genetyczny dla gr120}
 
-    TODO
+    Podobne badanie przeprowadziliśmy dla instacji gr120. 
 
-
+    \includegraphics[width=11cm]{../spr3img/grX/Figure_1gr120.png}
 
 \end{document}
